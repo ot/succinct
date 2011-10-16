@@ -5,9 +5,11 @@ This repository contains the implementation of some data structures. I
 wrote this code during my Ph.D. for my own experiments, so it is
 mostly undocumented and uncommented, and probably generally unclear. 
 
-The "library" is meant to be included as a git submodule in other
-projects and then included as a CMake subdirectory. See the project
-[semi_index](https://github.com/ot/semi_index) for an example.
+The "library" was part of the
+[semi_index](https://github.com/ot/semi_index) project and has been
+factored out. It is meant to be included as a git submodule in other
+projects and then included as a CMake subdirectory. See the
+[semi_index](https://github.com/ot/semi_index) project for an example.
 
 How to build the code
 ---------------------
