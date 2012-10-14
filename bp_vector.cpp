@@ -315,6 +315,13 @@ namespace succinct {
 
         return found_block;
     }
+
+    
+    uint64_t bp_vector::excess_rmq(uint64_t a, uint64_t b) const
+    {
+        return 0;
+    }
+
     
     void bp_vector::build_min_tree() 
     {

@@ -48,6 +48,9 @@ namespace succinct {
             assert((*this)[pos]);
             return find_open(pos);
         }
+
+        uint64_t excess_rmq(uint64_t a, uint64_t b) const;
+
         typedef int32_t excess_t; // Allow at most 2^31 depth of the tree
 
     protected:

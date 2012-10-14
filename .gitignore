@@ -3,6 +3,7 @@ libsuccinct.*
 
 test_bit_vector
 test_bp_vector
+test_bp_vector_rmq
 test_elias_fano
 test_mapper
 test_rs_bit_vector
