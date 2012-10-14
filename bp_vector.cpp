@@ -118,31 +118,32 @@ namespace succinct {
 	    return false;
         }
 
-        inline bp_vector::excess_t
-        excess_rmq_in_word(uint64_t word, uint8_t& idx, 
-                           bp_vector::excess_t& exc)
+        inline void
+        excess_rmq_in_word(uint64_t word, bp_vector::excess_t& exc, uint64_t word_start,
+                           bp_vector::excess_t& min_exc, uint64_t& min_exc_idx)
         {
-            exc = 0;
-            bp_vector::excess_t min_exc = 0;
+            bp_vector::excess_t min_byte_exc = 0;
             int min_byte_idx = 0;
 
 	    for (int i = 0; i < 8; ++i) {
 		uint8_t shift = i * 8;
 		uint8_t byte = (word >> shift) & 0xFF;
                 // m_fwd_min is negated
-                bp_vector::excess_t byte_min_exc = exc - tables.m_fwd_min[byte];
+                bp_vector::excess_t cur_min = exc - tables.m_fwd_min[byte];
 
-                if (byte_min_exc < min_exc) {
-                    min_exc = byte_min_exc;
+                if (cur_min < min_byte_exc) {
+                    min_byte_exc = cur_min;
                     min_byte_idx = i;
                 }
 
 		exc += tables.m_fwd_exc[byte];
 	    }
             
-            uint8_t shift = min_byte_idx * 8;
-            idx = shift + tables.m_fwd_min_idx[(word >> shift) & 0xFF];
-            return min_exc;            
+            if (min_byte_exc < min_exc) {
+                min_exc = min_byte_exc;
+                uint8_t shift = min_byte_idx * 8;
+                min_exc_idx = word_start + shift + tables.m_fwd_min_idx[(word >> shift) & 0xFF];
+            }
         }
     }
 
@@ -362,59 +363,39 @@ namespace succinct {
     {
         assert(b > a);
 
-        uint8_t word_min_exc_idx;
-        excess_t word_min_exc;
-        excess_t word_exc;
+        excess_t cur_exc = 0;
+        excess_t min_exc = 0;
+        uint64_t min_exc_idx = a;
 
         uint64_t range_len = b - a;
 
         uint64_t word_a_idx = a / 64;
         uint64_t word_b_idx = (b - 1) / 64;
-        uint64_t shift_a = a % 64;
-        uint64_t shifted_word_a = m_bits[word_a_idx] >> shift_a;
-        
-        if (word_a_idx == word_b_idx) {
-            // range is contained in a single word, special case
-            assert(range_len <= 64);
-            uint64_t padded_word_a = 
-                (range_len == 64) 
-                ? shifted_word_a 
-                : (shifted_word_a | (~0ULL << range_len));
-            
-            word_min_exc = excess_rmq_in_word(padded_word_a, word_min_exc_idx, word_exc);
-            if (word_min_exc < 0) { 
-                return a + word_min_exc_idx;
-            } else {
-                return a;
-            }
-        }
-        
-        excess_t cur_exc = 0;
-        excess_t min_exc = 0;
-        excess_t min_exc_idx = a;
 
         // search in word_a
-        uint64_t padded_word_a = 
-            shift_a == 0
-            ? shifted_word_a
-            : shifted_word_a | (~0ULL << (64 - shift_a));
+        uint64_t shift_a = a % 64;
+        uint64_t shifted_word_a = m_bits[word_a_idx] >> shift_a;
+        uint64_t subword_len_a = std::min(64 - shift_a, range_len);
 
-        word_min_exc = excess_rmq_in_word(padded_word_a, word_min_exc_idx, word_exc);
-        if (word_min_exc < min_exc) {
-            min_exc = word_min_exc;
-            min_exc_idx = a + word_min_exc_idx;
+        uint64_t padded_word_a = 
+            subword_len_a == 64
+            ? shifted_word_a
+            : shifted_word_a | (~0ULL << subword_len_a);
+
+        excess_rmq_in_word(padded_word_a, cur_exc, a,
+                           min_exc, min_exc_idx);
+
+        if (word_a_idx == word_b_idx) {
+            // range is contained in a single word, special case
+            return min_exc_idx;
         }
-        
-        cur_exc += word_exc - shift_a; // remove the padding
+
+        cur_exc -= shift_a; // remove the padding
 
         // search in words between word_a_idx and word_b_idx
         for (size_t w = word_a_idx + 1; w < word_b_idx; ++w) {
-            word_min_exc = excess_rmq_in_word(m_bits[w], word_min_exc_idx, word_exc);
-            if (cur_exc + word_min_exc < min_exc) {
-                min_exc = cur_exc + word_min_exc;
-                min_exc_idx = w * 64 + word_min_exc_idx;
-            }
-            cur_exc += word_exc;
+            excess_rmq_in_word(m_bits[w], cur_exc, w * 64,
+                               min_exc, min_exc_idx);
         }
         
         // search in word_b
@@ -425,12 +406,9 @@ namespace succinct {
             ? word_b
             : word_b | (~0ULL << offset_b);
 
-        word_min_exc = excess_rmq_in_word(padded_word_b, word_min_exc_idx, word_exc);
-        if (cur_exc + word_min_exc < min_exc) {
-            min_exc = cur_exc + word_min_exc;
-            min_exc_idx = word_b_idx * 64 + word_min_exc_idx;
-        }
-        
+        excess_rmq_in_word(padded_word_b, cur_exc, word_b_idx * 64,
+                           min_exc, min_exc_idx);
+
         return min_exc_idx;
     }
 
