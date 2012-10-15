@@ -48,10 +48,12 @@ namespace succinct {
             assert((*this)[pos]);
             return find_open(pos);
         }
-
-        uint64_t excess_rmq(uint64_t a, uint64_t b) const;
-
+        
         typedef int32_t excess_t; // Allow at most 2^31 depth of the tree
+
+        excess_t excess(uint64_t pos) const;
+        uint64_t excess_rmq(uint64_t a, uint64_t b, excess_t& min_exc) const;
+
 
     protected:
 
@@ -60,8 +62,15 @@ namespace succinct {
 	
         typedef int16_t block_min_excess_t; // superblock must be at most 2^15 - 1 bits
 
-        bool find_close_in_block(uint64_t pos, excess_t excess, uint64_t max_sub_blocks, uint64_t& ret) const;
-        bool find_open_in_block(uint64_t pos, excess_t excess, uint64_t max_sub_blocks, uint64_t& ret) const;
+        bool find_close_in_block(uint64_t pos, excess_t excess, 
+                                 uint64_t max_sub_blocks, uint64_t& ret) const;
+        bool find_open_in_block(uint64_t pos, excess_t excess, 
+                                uint64_t max_sub_blocks, uint64_t& ret) const;
+        void excess_rmq_in_block(uint64_t start, uint64_t end,
+                                 bp_vector::excess_t& exc, 
+                                 bp_vector::excess_t& min_exc, 
+                                 uint64_t& min_exc_idx) const;
+        
 
         inline excess_t get_block_excess(uint64_t block) const;
         inline bool in_node_range(uint64_t node, excess_t excess) const;

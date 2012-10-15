@@ -53,20 +53,28 @@ void test_rmq(std::vector<char> const& v, BPVector const& bitmap, std::string te
         if (a > v.size()) continue;
         
         typename BPVector::enumerator bp_it(bitmap, a);
-        typename BPVector::excess_t cur_exc = 0, min_exc = 0;
+        typename BPVector::excess_t cur_exc = bitmap.excess(a);
+        typename BPVector::excess_t min_exc = cur_exc, found_min_exc;
         uint64_t min_idx = a;
+        
+        BOOST_REQUIRE_EQUAL(min_idx, bitmap.excess_rmq(a, a, found_min_exc));
         
         for (uint64_t b = a + 1; b <= v.size(); ++b) {
             cur_exc += bp_it.next() ? 1 : -1;
             if (cur_exc < min_exc) {
                 min_exc = cur_exc;
-                min_idx = b - 1;
+                min_idx = b;
+
+                assert(min_exc == bitmap.excess(min_idx));
             }
-            
-            MY_REQUIRE_EQUAL(min_idx, bitmap.excess_rmq(a, b),
+
+            MY_REQUIRE_EQUAL(min_idx, bitmap.excess_rmq(a, b, found_min_exc),
 			     "excess_rmq (" << test_name << "):"
                              << " a = " << a
-                             << " b = " << b);
+                             << " b = " << b
+                             << " min_exc = " << min_exc
+                             << " found_min_exc = " << found_min_exc
+                             );
         }
     }
 }
