@@ -9,6 +9,8 @@ find_package(Boost 1.42.0 COMPONENTS unit_test_framework iostreams system thread
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories (${Boost_LIBRARY_DIRS})
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 set(SUCCINCT_SOURCES
   rs_bit_vector.cpp
   bp_vector.cpp
@@ -26,4 +28,6 @@ foreach(TEST_SRC ${SUCCINCT_TEST_SOURCES})
     )
   add_test(${TEST_SRC_NAME} ${TEST_SRC_NAME})
 endforeach(TEST_SRC)
+
+add_subdirectory(perftest)
 

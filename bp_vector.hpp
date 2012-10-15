@@ -53,6 +53,10 @@ namespace succinct {
 
         excess_t excess(uint64_t pos) const;
         uint64_t excess_rmq(uint64_t a, uint64_t b, excess_t& min_exc) const;
+        inline uint64_t excess_rmq(uint64_t a, uint64_t b) const {
+            excess_t foo;
+            return excess_rmq(a, b, foo);
+        }
 
 
     protected:

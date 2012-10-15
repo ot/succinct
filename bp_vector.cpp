@@ -359,7 +359,7 @@ namespace succinct {
     }
 
 
-    inline bp_vector::excess_t
+    bp_vector::excess_t
     bp_vector::excess(uint64_t pos) const
     {
         return static_cast<excess_t>(2 * rank(pos) - pos);
