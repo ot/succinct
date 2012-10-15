@@ -372,14 +372,37 @@ namespace succinct {
                                    uint64_t& min_exc_idx) const
     {
         assert(start <= end);
-        assert((start == end) || ((start / bp_block_size) == ((end - 1) / bp_block_size)));
+        if (start == end) return;
+
+        assert((start / bp_block_size) == ((end - 1) / bp_block_size));
         for (size_t w = start; w < end; ++w) {
             excess_rmq_in_word(m_bits[w], exc, w * 64,
                                min_exc, min_exc_idx);
         }
     }
 
+    void
+    bp_vector::excess_rmq_in_superblock(uint64_t block_start, uint64_t block_end,
+                                        bp_vector::excess_t& block_min_exc, 
+                                        uint64_t& block_min_idx) const
+    {
+        assert(block_start <= block_end);
+        if (block_start == block_end) return;
+        
+        uint64_t superblock = block_start / superblock_size;
+        
+        assert(superblock == ((block_end - 1) / superblock_size));
+        excess_t superblock_excess = get_block_excess(superblock * superblock_size);
+
+        for (uint64_t block = block_start; block < block_end; ++block) {
+            if (superblock_excess + m_block_excess_min[block] < block_min_exc) {
+                block_min_exc = superblock_excess + m_block_excess_min[block];
+                block_min_idx = block;
+            }
+        }
+    }
     
+
     uint64_t bp_vector::excess_rmq(uint64_t a, uint64_t b, excess_t& min_exc) const
     {
         assert(a <= b);
@@ -433,15 +456,49 @@ namespace succinct {
             // search in blocks
             excess_t block_min_exc = min_exc;
             uint64_t block_min_idx = -1;
-            for (uint64_t block = block_a + 1; block < block_b; ++block) {
-                excess_t superblock_excess = get_block_excess((block / superblock_size) * superblock_size);
-                if (superblock_excess + m_block_excess_min[block] < block_min_exc) {
-                    block_min_exc = superblock_excess + m_block_excess_min[block];
-                    block_min_idx = block;
+            
+            uint64_t superblock_a = (block_a + 1) / superblock_size;
+            uint64_t superblock_b = block_b / superblock_size;
+
+            if (superblock_a == superblock_b) {
+                // same superblock
+                excess_rmq_in_superblock(block_a + 1, block_b,
+                                         block_min_exc, block_min_idx);
+            } else {
+                // partial superblock of a
+                excess_rmq_in_superblock(block_a + 1, 
+                                         (superblock_a + 1) * superblock_size, 
+                                         block_min_exc,
+                                         block_min_idx);
+
+                // XXX HERE MIN TREE
+                uint64_t superblock_min_exc = min_exc;
+                uint64_t superblock_min_idx = -1;
+                for (uint64_t superblock = superblock_a + 1; superblock < superblock_b; ++superblock) {
+                    excess_t sb_min = m_superblock_excess_min[m_internal_nodes + superblock];
+                    if (sb_min < superblock_min_exc) {
+                        superblock_min_exc = sb_min;
+                        superblock_min_idx = superblock;
+                    }
                 }
+                
+                if (superblock_min_exc < min_exc) {
+                    excess_rmq_in_superblock(superblock_min_idx * superblock_size,
+                                             (superblock_min_idx + 1) * superblock_size,
+                                             block_min_exc,
+                                             block_min_idx);
+                }
+                // /XXX HERE MIN TREE
+                
+
+                // partial superblock of b
+                excess_rmq_in_superblock(superblock_b * superblock_size,
+                                         block_b,
+                                         block_min_exc,
+                                         block_min_idx);
             }
-        
-            if (block_min_idx != -1) {
+
+            if (block_min_exc < min_exc) {
                 cur_exc = get_block_excess(block_min_idx);
                 excess_rmq_in_block(block_min_idx * bp_block_size, 
                                     (block_min_idx + 1) * bp_block_size,
@@ -449,6 +506,7 @@ namespace succinct {
                 assert(min_exc == block_min_exc);
             }
         
+            // search in partial block of word_b
             cur_exc = get_block_excess(block_b);
             excess_rmq_in_block(block_b * bp_block_size, word_b_idx,
                                 cur_exc, min_exc, min_exc_idx);

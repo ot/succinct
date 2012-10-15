@@ -66,10 +66,14 @@ namespace succinct {
                                  uint64_t max_sub_blocks, uint64_t& ret) const;
         bool find_open_in_block(uint64_t pos, excess_t excess, 
                                 uint64_t max_sub_blocks, uint64_t& ret) const;
+
         void excess_rmq_in_block(uint64_t start, uint64_t end,
                                  bp_vector::excess_t& exc, 
                                  bp_vector::excess_t& min_exc, 
                                  uint64_t& min_exc_idx) const;
+        void excess_rmq_in_superblock(uint64_t block_start, uint64_t block_end,
+                                      bp_vector::excess_t& block_min_exc, 
+                                      uint64_t& block_min_idx) const;
         
 
         inline excess_t get_block_excess(uint64_t block) const;
