@@ -401,7 +401,112 @@ namespace succinct {
             }
         }
     }
-    
+
+
+    void
+    bp_vector::find_min_superblock(uint64_t superblock_start, uint64_t superblock_end,
+                                   bp_vector::excess_t& superblock_min_exc,
+                                   uint64_t& superblock_min_idx) const {
+
+        if (superblock_start == superblock_end) return;
+            
+        uint64_t cur_node = m_internal_nodes + superblock_start;
+        uint64_t rightmost_span = superblock_start;
+        
+        excess_t node_min_exc = m_superblock_excess_min[cur_node];
+        uint64_t node_min_idx = cur_node;
+        
+        // code below assumes that there is at least one right-turn in
+        // the node-root-node path, so we must handle this case
+        // separately
+        if (superblock_end - superblock_start == 1) {
+            superblock_min_exc = node_min_exc;
+            superblock_min_idx = superblock_start;
+            return;
+        }
+        
+        // go up the tree until we find the lowest node that spans the
+        // whole superblock range
+        size_t h = 0;
+        while (true) {
+            assert(cur_node);
+            
+            if ((cur_node & 1) == 0) { // is a left child
+                // add right subtree to candidate superblocks
+                uint64_t right_sibling = cur_node + 1;
+                rightmost_span += 1 << h;
+                
+                if (rightmost_span < superblock_end &&
+                    m_superblock_excess_min[right_sibling] < node_min_exc) {
+                    node_min_exc = m_superblock_excess_min[right_sibling];
+                    node_min_idx = right_sibling;
+                }
+                
+                if (rightmost_span >= superblock_end - 1) {
+                    cur_node += 1;
+                    break;
+                }
+            }            
+            
+            cur_node /= 2; // parent
+            h += 1;
+        }
+
+        assert(cur_node);
+
+        // go down until we reach superblock_end
+        while (rightmost_span > superblock_end - 1) {
+            assert(cur_node < m_superblock_excess_min.size());
+            assert(h > 0);
+            
+            h -= 1;
+            uint64_t left_child = cur_node * 2;
+            uint64_t right_child_span = 1 << h;
+            if ((rightmost_span - right_child_span) >= (superblock_end - 1)) {
+                // go to left child 
+                rightmost_span -= right_child_span;
+                cur_node = left_child;
+            } else {
+                // go to right child and add left subtree to candidate
+                // subblocks
+                if (m_superblock_excess_min[left_child] < node_min_exc) {
+                    node_min_exc = m_superblock_excess_min[left_child];
+                    node_min_idx = left_child;
+                }
+                cur_node = left_child + 1;
+            }
+        }
+        
+        // check last left-turn
+        if (rightmost_span < superblock_end &&
+            m_superblock_excess_min[cur_node] < node_min_exc) {
+            node_min_exc = m_superblock_excess_min[cur_node];
+            node_min_idx = cur_node;
+        }
+
+        assert(rightmost_span == superblock_end - 1);
+        
+        // now reach the minimum leaf in the found subtree (cur_node),
+        // which is entirely contained in the range
+        if (node_min_exc < superblock_min_exc) {
+            cur_node = node_min_idx;
+            while (cur_node < m_internal_nodes) {
+                cur_node *= 2;
+                // remember that past-the-end nodes are filled with size()
+                if (m_superblock_excess_min[cur_node + 1] < 
+                    m_superblock_excess_min[cur_node]) {
+                    cur_node += 1;
+                }
+            }
+            
+            assert(m_superblock_excess_min[cur_node] == node_min_exc);
+            superblock_min_exc = node_min_exc;
+            superblock_min_idx = cur_node - m_internal_nodes;
+
+            assert(superblock_min_idx >= superblock_start);
+            assert(superblock_min_idx < superblock_end);
+        }
+    }
 
     uint64_t bp_vector::excess_rmq(uint64_t a, uint64_t b, excess_t& min_exc) const
     {
@@ -471,16 +576,11 @@ namespace succinct {
                                          block_min_exc,
                                          block_min_idx);
 
-                // XXX HERE MIN TREE
-                uint64_t superblock_min_exc = min_exc;
+                // search min superblock in the min tree
+                excess_t superblock_min_exc = min_exc;
                 uint64_t superblock_min_idx = -1;
-                for (uint64_t superblock = superblock_a + 1; superblock < superblock_b; ++superblock) {
-                    excess_t sb_min = m_superblock_excess_min[m_internal_nodes + superblock];
-                    if (sb_min < superblock_min_exc) {
-                        superblock_min_exc = sb_min;
-                        superblock_min_idx = superblock;
-                    }
-                }
+                find_min_superblock(superblock_a + 1, superblock_b,
+                                    superblock_min_exc, superblock_min_idx);
                 
                 if (superblock_min_exc < min_exc) {
                     excess_rmq_in_superblock(superblock_min_idx * superblock_size,
@@ -488,8 +588,6 @@ namespace succinct {
                                              block_min_exc,
                                              block_min_idx);
                 }
-                // /XXX HERE MIN TREE
-                
 
                 // partial superblock of b
                 excess_rmq_in_superblock(superblock_b * superblock_size,

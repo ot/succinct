@@ -74,7 +74,10 @@ namespace succinct {
         void excess_rmq_in_superblock(uint64_t block_start, uint64_t block_end,
                                       bp_vector::excess_t& block_min_exc, 
                                       uint64_t& block_min_idx) const;
-        
+        void find_min_superblock(uint64_t superblock_start, uint64_t superblock_end,
+                                 bp_vector::excess_t& superblock_min_exc,
+                                 uint64_t& superblock_min_idx) const;
+            
 
         inline excess_t get_block_excess(uint64_t block) const;
         inline bool in_node_range(uint64_t node, excess_t excess) const;

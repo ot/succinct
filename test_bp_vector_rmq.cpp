@@ -40,9 +40,8 @@ void test_rmq(std::vector<char> const& v, BPVector const& bitmap, std::string te
     std::vector<uint64_t> tests;
     tests.push_back(1);
     tests.push_back(8);
-    tests.push_back(16);
     tests.push_back(64);
-    tests.push_back(512);
+    tests.push_back(8192);
     tests.push_back(v.size());
     for (size_t t = 0; t < 10; ++t) {
         tests.push_back(rand() % v.size());
@@ -79,7 +78,7 @@ void test_rmq(std::vector<char> const& v, BPVector const& bitmap, std::string te
     }
 }
 
-BOOST_AUTO_TEST_CASE(bp_vector)
+BOOST_AUTO_TEST_CASE(bp_vector_rmq)
 {
     srand(42);
 
