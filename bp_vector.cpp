@@ -197,7 +197,7 @@ namespace succinct {
         }
 
         // Otherwise, find the first appropriate block
-        excess_t pos_excess = static_cast<excess_t>(2 * rank(pos) - pos);
+        excess_t pos_excess = excess(pos);
         uint64_t found_block = search_min_tree<1>(block + 1, pos_excess);
         uint64_t found_block_offset = found_block * bp_block_size;
         excess_t found_block_excess = get_block_excess(found_block);
@@ -259,7 +259,7 @@ namespace succinct {
         }
 
         // Otherwise, find the first appropriate block 
-	excess_t pos_excess = static_cast<excess_t>(2 * rank(pos) - pos) - 1;
+	excess_t pos_excess = excess(pos) - 1;
         uint64_t found_block = search_min_tree<0>(block - 1, pos_excess);
         uint64_t found_block_offset = found_block * bp_block_size;
         // Since search is backwards, have to add the current block
