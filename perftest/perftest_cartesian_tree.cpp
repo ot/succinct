@@ -6,17 +6,17 @@
 #include "util.hpp"
 #include "test_bp_vector_common.hpp"
 
-#include "bp_vector.hpp"
+#include "cartesian_tree.hpp"
 
 #include "perftest_common.hpp"
 
-double time_avg_rmq(succinct::bp_vector const& bp, size_t sample_size = 1000000)
+double time_avg_rmq(succinct::cartesian_tree const& tree, size_t sample_size = 1000000)
 {
     typedef std::pair<uint64_t, uint64_t> range_pair;
     std::vector<range_pair> pairs_sample;
     for (size_t i = 0; i < sample_size; ++i) {
-        uint64_t a = rand() % bp.size();
-        uint64_t b = a + (rand() % (bp.size() - a));
+        uint64_t a = rand() % tree.size();
+        uint64_t b = a + (rand() % (tree.size() - a));
         pairs_sample.push_back(range_pair(a, b));
     }
     
@@ -27,7 +27,7 @@ double time_avg_rmq(succinct::bp_vector const& bp, size_t sample_size = 1000000)
     SUCCINCT_TIMEIT(elapsed) {
         for (size_t i = 0; i < pairs_sample.size(); ++i) {
             range_pair r = pairs_sample[i];
-            foo = bp.excess_rmq(r.first, r.second);
+            foo = tree.rmq(r.first, r.second);
             rmq_performed += 1;
         }
     }
@@ -35,19 +35,12 @@ double time_avg_rmq(succinct::bp_vector const& bp, size_t sample_size = 1000000)
     return elapsed / rmq_performed;
 }
 
-void build_random_binary_tree(succinct::bp_vector& bp, size_t size) 
-{
-    succinct::bit_vector_builder builder;
-    succinct::random_binary_tree(builder, size);
-    succinct::bp_vector(&builder, true, false).swap(bp);
-}
-
 void rmq_benchmark(size_t runs)
 {
     srand(42); // make everything deterministic
     static const size_t sample_size = 10000000;
     
-    std::cout << "SUCCINCT_EXCESS_RMQ" << std::endl;
+    std::cout << "SUCCINCT_CARTESIAN_TREE_RMQ" << std::endl;
     std::cout << "log_height" "\t" "excess_rmq_us" << std::endl;
     
     for (size_t ln = 10; ln <= 28; ln += 2) {
@@ -55,9 +48,13 @@ void rmq_benchmark(size_t runs)
 	double elapsed = 0;
 	double bits_per_bp = 0;
 	for (size_t run = 0; run < runs; ++run) {
-            succinct::bp_vector bp;
-	    build_random_binary_tree(bp, n);
-	    elapsed += time_avg_rmq(bp, sample_size);
+	    std::vector<uint64_t> v(n);
+            for (size_t i = 0; i < v.size(); ++i) {
+                v[i] = rand() % 1024;
+            }
+
+            succinct::cartesian_tree tree(v);
+	    elapsed += time_avg_rmq(tree, sample_size);
 	}
 	std::cout << ln << "\t" << elapsed / runs << std::endl;
     }
