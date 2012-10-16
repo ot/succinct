@@ -85,6 +85,11 @@ namespace succinct {
 	{
 	    return m_bp;
 	}
+
+	size_t size() const
+	{
+	    return m_bp.size() / 2 - 1;
+	}
 	
         template <typename Visitor>
         void map(Visitor& visit) 
