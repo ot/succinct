@@ -41,11 +41,15 @@ namespace succinct {
                 
                 s.push(cur);
             }
+	    
+	    bp.push_back(0); // fake root	    
             
             while (!s.empty()) {
                 s.pop();
                 bp.push_back(1);
             }
+
+	    bp.push_back(1); // fake root	    
 
             std::reverse(bp.begin(), bp.end());
                
@@ -57,8 +61,8 @@ namespace succinct {
         {
             assert(a <= b);
             if (a == b) return a;
-            uint64_t x = m_bp.select0(a);
-            uint64_t y = m_bp.select0(b);
+            uint64_t x = m_bp.select0(a + 1);
+            uint64_t y = m_bp.select0(b + 1);
             uint64_t w = m_bp.excess_rmq(x, y);
 
             uint64_t ret;
@@ -66,10 +70,10 @@ namespace succinct {
             ret = m_bp.rank0(w);
             assert(m_bp[w - 1] == 0);
 
-            if (m_bp.rank0(m_bp.find_open(w - 1)) == a) {
+            if (m_bp.rank0(m_bp.find_open(w - 1)) == a + 1) {
                 ret = a;
             } else {
-                ret = m_bp.rank0(w);
+                ret = m_bp.rank0(w) - 1;
             }
             
             assert(ret >= a);
@@ -77,6 +81,11 @@ namespace succinct {
             return ret;
         }
 
+	bp_vector const& get_bp() const
+	{
+	    return m_bp;
+	}
+	
         template <typename Visitor>
         void map(Visitor& visit) 
         {

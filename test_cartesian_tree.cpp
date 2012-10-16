@@ -17,7 +17,7 @@ void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& 
     if (v.empty()) return;
     
     std::vector<uint64_t> tests;
-    //tests.push_back(0);
+    tests.push_back(0);
     tests.push_back(1);
     for (size_t t = 0; t < 10; ++t) {
         tests.push_back(rand() % v.size());
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
 
     {
         //size_t sizes[] = {2, 4, 512, 514, 8190, 8192, 8194, 16384, 16386, 100000};
-        size_t sizes[] = {512, 514, 8190, 8192, 8194, 16384, 16386, 100000};
+        size_t sizes[] = {8190, 8192, 8194, 16384, 16386, 100000};
         for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
             std::vector<value_type> v(sizes[i]);
             for (size_t i = 0; i < v.size(); ++i) {
