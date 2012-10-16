@@ -131,10 +131,8 @@ namespace succinct {
                 // m_fwd_min is negated
                 bp_vector::excess_t cur_min = exc - tables.m_fwd_min[byte];
 
-                if (cur_min < min_byte_exc) {
-                    min_byte_exc = cur_min;
-                    min_byte_idx = i;
-                }
+		min_byte_idx = (cur_min < min_byte_exc) ? i : min_byte_idx;
+		min_byte_exc = (cur_min < min_byte_exc) ? cur_min : min_byte_exc;
 
 		exc += tables.m_fwd_exc[byte];
 	    }
