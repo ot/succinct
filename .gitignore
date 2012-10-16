@@ -11,6 +11,7 @@ test_darray
 test_elias_fano_compressed_list
 test_gamma_bit_vector
 test_gamma_vector
+test_cartesian_tree
 
 
 # cmake

@@ -39,7 +39,7 @@ void test_rmq(std::vector<char> const& v, BPVector const& bitmap, std::string te
         
         BOOST_REQUIRE_EQUAL(min_idx, bitmap.excess_rmq(a, a, found_min_exc));
         
-        for (uint64_t b = a + 1; b <= v.size(); ++b) {
+        for (uint64_t b = a + 1; b < v.size(); ++b) {
             cur_exc += bp_it.next() ? 1 : -1;
             if (cur_exc < min_exc) {
                 min_exc = cur_exc;
