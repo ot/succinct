@@ -8,30 +8,11 @@
 #include "bp_vector.hpp"
 #include "test_bp_vector_common.hpp"
 
-// XXX(ot): check if b should be inclusive or not
-template <class BPVector>
-uint64_t linear_excess_rmq(BPVector const& bitmap, uint64_t a, uint64_t b)
-{
-    typename BPVector::enumerator bp_it(bitmap, a);
-    typename BPVector::excess_t cur_exc = 0, min_exc = 0;
-    uint64_t min_pos = 0;
-        
-    for (uint64_t i = 0; i < (b - a); ++i) {
-        cur_exc += bp_it.next() ? 1 : -1;
-        if (cur_exc < min_exc) {
-            min_exc = cur_exc;
-            min_pos = i;
-        }
-    }    
-    
-    return a + min_pos;
-}
-
-
 
 template <class BPVector>
 void test_rmq(std::vector<char> const& v, BPVector const& bitmap, std::string test_name)
 {
+    // XXX should we test this case?
     if (v.empty()) return;
 
     // test all values from a to v.size() for a in specific locations
