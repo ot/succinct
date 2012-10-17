@@ -77,6 +77,9 @@ namespace succinct {
             bp_vector(&bp, false, true).swap(m_bp);
         }
         
+        // NOTE: this is RMQ in the interval [a, b], b inclusive
+        // XXX(ot): maybe change this to [a, b), for consistency with
+        // the rest of the library?
         uint64_t rmq(uint64_t a, uint64_t b) const
         {
 	    assert(a <= b);
