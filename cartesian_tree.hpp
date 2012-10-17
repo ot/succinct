@@ -9,6 +9,29 @@
 
 namespace succinct {
 
+    // This class implements a cartesian tree based RMQ data
+    // structure, using the 2d-Min-Heap DFUDS representation described
+    // in "Space-Efficient Preprocessing Schemes for Range Minimum
+    // Queries on Static Arrays", Johannes Fischer and Volker Heun,
+    // SIAM J. Comput., 40(2), 465–492.
+
+    // We made a few variations:
+    //
+    // - The rmq() operation in the paper checks whether x is parent
+    //   of w - 1, which can be written as select0(x - 1) <
+    //   find_open(w - 1). We use instead the fact that the excess
+    //   between x and w (both excluded) is strictly greater than the
+    //   excess of w, so the formula above holds iff excess(select0(x
+    //   - 1) + 1) <= excess(w). This is faster because a select0 is
+    //   faster than find_open+rank0.
+    //
+    // - The construction is done in reverse order so that the input
+    //   array can be traversed left-to-right. This involves
+    //   re-mapping all the indices at query time
+    //     
+    // - Our data structures have 0-based indices, so the operations
+    //   are slightly different from those in the paper
+
     class cartesian_tree : boost::noncopyable {
     public:
 
@@ -60,20 +83,25 @@ namespace succinct {
             if (a == b) return a;
          
 	    uint64_t n = size();
-            uint64_t y = m_bp.select0(n - a);
+
+            uint64_t t = m_bp.select0(n - b - 1);
+            bp_vector::excess_t exc_t = bp_vector::excess_t(t - 2 * (n - b - 1));
+            assert(exc_t - 1 == m_bp.excess(t + 1));
+
             uint64_t x = m_bp.select0(n - b);
-            uint64_t w = m_bp.excess_rmq(x, y);
+            uint64_t y = m_bp.select0(n - a);
 
-            uint64_t ret;
-
+            bp_vector::excess_t exc_w;
+            uint64_t w = m_bp.excess_rmq(x, y, exc_w);
             assert(m_bp[w - 1] == 0);
 
-            if (n - m_bp.rank0(m_bp.find_open(w - 1)) == b) {
+            uint64_t ret;
+            if (exc_w >= exc_t - 1) {
                 ret = b;
             } else {
                 ret = n - m_bp.rank0(w);
             }
-            
+
             assert(ret >= a);
             assert(ret <= b);
             return ret;
