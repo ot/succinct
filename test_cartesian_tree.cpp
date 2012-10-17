@@ -11,7 +11,9 @@ typedef int64_t value_type;
 
 // XXX test (de)serialization
 
-void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& tree, std::string test_name)
+template <typename Comparator>
+void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& tree, 
+	      Comparator const& comp, std::string test_name)
 {
     BOOST_REQUIRE_EQUAL(v.size(), tree.size());
 
@@ -22,7 +24,7 @@ void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& 
     tests.push_back(0);
     tests.push_back(1);
     // This is the global minimum of the vector
-    tests.push_back(std::min_element(v.begin(), v.end()) - v.begin());
+    tests.push_back(std::min_element(v.begin(), v.end(), comp) - v.begin());
     
     // Plus some random...
     for (size_t t = 0; t < 10; ++t) {
@@ -39,7 +41,7 @@ void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& 
         BOOST_REQUIRE_EQUAL(min_idx, tree.rmq(a, a));
         
         for (uint64_t b = a + 1; b < v.size(); ++b) {
-            if (v[b] < cur_min) {
+            if (comp(v[b], cur_min)) {
                 cur_min = v[b];
                 min_idx = b;
             }
@@ -64,7 +66,7 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
     {
         std::vector<value_type> v;
         succinct::cartesian_tree t(v);
-        test_rmq(v, t, "Empty vector");
+        test_rmq(v, t, std::less<value_type>(), "Empty vector");
     }
     
     {
@@ -73,18 +75,14 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
             v[i] = i;
         }
         
-        succinct::cartesian_tree t(v);
-        test_rmq(v, t, "Increasing values");
-    }
-
-    {
-        std::vector<value_type> v(20000);
-        for (size_t i = 0; i < v.size(); ++i) {
-            v[i] = v.size() - i;
-        }
-        
-        succinct::cartesian_tree t(v);
-        test_rmq(v, t, "Decreasing values");
+	{
+	    succinct::cartesian_tree t(v);
+	    test_rmq(v, t, std::less<value_type>(), "Increasing values");
+	}
+	{
+	    succinct::cartesian_tree t(v, std::greater<value_type>());
+	    test_rmq(v, t, std::greater<value_type>(), "Decreasing values");
+	}
     }
 
     {
@@ -97,8 +95,15 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
             }
         }
         
-        succinct::cartesian_tree t(v);
-        test_rmq(v, t, "Unimodal values");
+        {
+	    succinct::cartesian_tree t(v);
+	    test_rmq(v, t, std::less<value_type>(), "Convex values");
+	}
+
+        {
+	    succinct::cartesian_tree t(v, std::greater<value_type>());
+	    test_rmq(v, t, std::greater<value_type>(), "Concave values");
+	}
     }
 
     {
@@ -110,7 +115,7 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
             }
         
             succinct::cartesian_tree t(v);
-            test_rmq(v, t, "Random values");
+            test_rmq(v, t, std::less<value_type>(), "Random values");
         }
     }
 }

@@ -40,41 +40,13 @@ namespace succinct {
         template <typename Range>
         cartesian_tree(Range const& v)
         {
-            typedef typename 
-                boost::range_value<Range>::type value_type;
-            typedef typename
-                boost::range_iterator<const Range>::type iter_type;
+	    build_(v, std::less<typename boost::range_value<Range>::type>());
+        }
 
-            typedef std::pair<value_type, size_t> value_pos_type;
-            std::vector<value_pos_type> s;
-            size_t idx = 0;
-
-	    uint64_t n = 2 * boost::size(v) + 2;
-            bit_vector_builder bp(n);
-	    uint64_t i = n - 1;
-            
-            for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
-                value_pos_type cur(*it, idx++);
-		i--; // prepend 0
-                
-                while (!s.empty() && s.back() > cur) {
-                    s.pop_back();
-                    bp.set(i--, 1); // prepend 1
-                }
-                
-                s.push_back(cur);
-            }
-	    
-	    i--; // fake root
-            
-            while (!s.empty()) {
-                s.pop_back();
-		bp.set(i--, 1); 
-            }
-
-	    bp.set(i--, 1); 
-
-            bp_vector(&bp, false, true).swap(m_bp);
+        template <typename Range, typename Comparator>
+        cartesian_tree(Range const& v, Comparator const& comp)
+        {
+	    build_(v, comp);
         }
         
         // NOTE: this is RMQ in the interval [a, b], b inclusive
@@ -135,6 +107,50 @@ namespace succinct {
         }
         
     protected:
+	
+        template <typename Range, typename Comparator>
+	void build_(Range const& v, Comparator const& comp)
+	{
+            typedef typename 
+                boost::range_value<Range>::type value_type;
+            typedef typename
+                boost::range_iterator<const Range>::type iter_type;
+
+            typedef std::pair<value_type, size_t> value_pos_type;
+            std::vector<value_pos_type> s;
+            size_t idx = 0;
+
+	    uint64_t n = 2 * boost::size(v) + 2;
+            bit_vector_builder bp(n);
+	    uint64_t i = n - 1;
+            
+            for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
+                value_pos_type cur(*it, idx++);
+		i--; // prepend 0
+                
+                while (!s.empty() && 
+		       (comp(cur.first, s.back().first) || // lex comparison (cur < s.back())
+			((cur.first == s.back().first) && cur.second < s.back().second))) {
+                    s.pop_back();
+                    bp.set(i--, 1); // prepend 1
+                }
+                
+                s.push_back(cur);
+            }
+	    
+	    i--; // fake root
+            
+            while (!s.empty()) {
+                s.pop_back();
+		bp.set(i--, 1); 
+            }
+
+	    bp.set(i--, 1); 
+
+            bp_vector(&bp, false, true).swap(m_bp);
+	}
+
+
         bp_vector m_bp;
     };
 
