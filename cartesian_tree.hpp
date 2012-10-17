@@ -66,7 +66,6 @@ namespace succinct {
 
             uint64_t ret;
 
-            ret = n - m_bp.rank0(w);
             assert(m_bp[w - 1] == 0);
 
             if (n - m_bp.rank0(m_bp.find_open(w - 1)) == b) {
