@@ -19,6 +19,9 @@ namespace succinct {
 	typedef typename vector_type::value_type value_type;
 	typedef boost::tuple<value_type, uint64_t> entry_type;
 	
+	topk_vector()
+	{}
+
         template <typename Range>
         topk_vector(Range const& v)
 	{

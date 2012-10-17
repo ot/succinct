@@ -211,7 +211,6 @@ namespace succinct {
             return false;
         }
         assert(excess >= 0);
-        uint64_t block = block_offset / bp_block_size;
 
         for (uint64_t sub_block_offset = start - 1; sub_block_offset + 1 > 0; --sub_block_offset) {
             assert(excess > 0);
