@@ -86,7 +86,7 @@ namespace succinct {
         void map(Visitor& visit) 
         {
             visit
-                (m_v, "m_v");
+                (m_v, "m_v")
                 (m_cartesian_tree, "m_cartesian_tree");
         }
 	
