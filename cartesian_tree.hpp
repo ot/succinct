@@ -27,7 +27,8 @@ namespace succinct {
     //
     // - The construction is done in reverse order so that the input
     //   array can be traversed left-to-right. This involves
-    //   re-mapping all the indices at query time
+    //   re-mapping all the indices at query time. Since the array is
+    //   reversed, in ties the leftmost element wins
     //     
     // - Our data structures have 0-based indices, so the operations
     //   are slightly different from those in the paper
@@ -116,21 +117,17 @@ namespace succinct {
             typedef typename
                 boost::range_iterator<const Range>::type iter_type;
 
-            typedef std::pair<value_type, size_t> value_pos_type;
-            std::vector<value_pos_type> s;
-            size_t idx = 0;
+            std::vector<value_type> s;
 
 	    uint64_t n = 2 * boost::size(v) + 2;
             bit_vector_builder bp(n);
 	    uint64_t i = n - 1;
             
             for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
-                value_pos_type cur(*it, idx++);
+                value_type cur = *it;
 		i--; // prepend 0
                 
-                while (!s.empty() && 
-		       (comp(cur.first, s.back().first) || // lex comparison (cur < s.back())
-			((cur.first == s.back().first) && cur.second < s.back().second))) {
+                while (!s.empty() && comp(cur, s.back())) { // cur < s.back() 
                     s.pop_back();
                     bp.set(i--, 1); // prepend 1
                 }
