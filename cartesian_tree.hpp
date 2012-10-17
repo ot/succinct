@@ -9,7 +9,7 @@
 
 namespace succinct {
 
-    // This class implements a cartesian tree based RMQ data
+    // This class implements a cartesian-tree-based RMQ data
     // structure, using the 2d-Min-Heap DFUDS representation described
     // in "Space-Efficient Preprocessing Schemes for Range Minimum
     // Queries on Static Arrays", Johannes Fischer and Volker Heun,
@@ -82,19 +82,21 @@ namespace succinct {
         // the rest of the library?
         uint64_t rmq(uint64_t a, uint64_t b) const
         {
+            typedef bp_vector::excess_t excess_t;
+
 	    assert(a <= b);
             if (a == b) return a;
          
 	    uint64_t n = size();
 
             uint64_t t = m_bp.select0(n - b - 1);
-            bp_vector::excess_t exc_t = bp_vector::excess_t(t - 2 * (n - b - 1));
+            excess_t exc_t = excess_t(t) - 2 * (n - b - 1);
             assert(exc_t - 1 == m_bp.excess(t + 1));
 
             uint64_t x = m_bp.select0(n - b);
             uint64_t y = m_bp.select0(n - a);
 
-            bp_vector::excess_t exc_w;
+            excess_t exc_w;
             uint64_t w = m_bp.excess_rmq(x, y, exc_w);
             assert(m_bp[w - 1] == 0);
 
