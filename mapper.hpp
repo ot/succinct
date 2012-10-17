@@ -15,8 +15,8 @@ namespace succinct {
 namespace mapper {
 
     struct freeze_flags {
-        enum {
-        };
+        // enum {
+        // };
     };
 
     struct map_flags {
