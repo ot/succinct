@@ -44,6 +44,10 @@ namespace succinct {
         class enumerator
         {
         public:
+            enumerator()
+                : m_topkv(false)
+            {}
+
             bool next() 
             {
                 using boost::tie;
