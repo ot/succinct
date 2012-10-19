@@ -45,7 +45,7 @@ namespace succinct {
         {
         public:
             enumerator()
-                : m_topkv(false)
+                : m_topkv(0)
             {}
 
             bool next() 
@@ -83,9 +83,10 @@ namespace succinct {
 
             void swap(enumerator& other)
             {
-                std::swap(m_topkv, other.m_topkv);
-                m_q.swap(other.m_q);
-                m_cur.swap(other.m_cur);
+                using std::swap;
+                swap(m_topkv, other.m_topkv);
+                swap(m_q, other.m_q);
+                swap(m_cur, other.m_cur);
             }
             
         protected:
