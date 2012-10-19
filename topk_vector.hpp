@@ -81,6 +81,13 @@ namespace succinct {
             
             friend class topk_vector;
 
+            void swap(enumerator& other)
+            {
+                std::swap(m_topkv, other.m_topkv);
+                m_q.swap(other.m_q);
+                m_cur.swap(other.m_cur);
+            }
+            
         protected:
 
             enumerator(topk_vector const* topkv, uint64_t a, uint64_t b) 
