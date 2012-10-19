@@ -431,7 +431,7 @@ namespace succinct {
             if ((cur_node & 1) == 0) { // is a left child
                 // add right subtree to candidate superblocks
                 uint64_t right_sibling = cur_node + 1;
-                rightmost_span += 1 << h;
+                rightmost_span += uint64_t(1) << h;
                 
                 if (rightmost_span < superblock_end &&
                     m_superblock_excess_min[right_sibling] < node_min_exc) {
@@ -458,7 +458,7 @@ namespace succinct {
             
             h -= 1;
             uint64_t left_child = cur_node * 2;
-            uint64_t right_child_span = 1 << h;
+            uint64_t right_child_span = uint64_t(1) << h;
             if ((rightmost_span - right_child_span) >= (superblock_end - 1)) {
                 // go to left child 
                 rightmost_span -= right_child_span;
