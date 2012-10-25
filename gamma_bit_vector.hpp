@@ -6,6 +6,13 @@
 
 namespace succinct {
     
+    // Compressed random-access vector to store unsigned integers
+    // using gamma codes. This implementation optimizes for integers
+    // whose representation is at least one bit long. It can be used,
+    // for example, to represent signed integers (with uniform sign
+    // distribution) by putting the sign in the LSB. For generic
+    // unsigned integers, use gamma_vector
+
     struct gamma_bit_vector
     {
         typedef uint64_t value_type;
@@ -75,11 +82,6 @@ namespace succinct {
         }
 
         friend struct forward_enumerator<gamma_bit_vector>;
-
-	static const size_t block_size = 1024; // 64 * block_size must fit in an uint16_t (64 is the max sparsity of high_bits)
-	static const size_t subblock_size = 64;
-	
-	size_t m_size;
 
 	darray64 m_high_bits;
 	bit_vector m_low_bits;
