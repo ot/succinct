@@ -103,6 +103,12 @@ namespace succinct {
             }
         }
 
+	void skip(size_t k)
+	{
+	    // XXX actually implement this
+	    while (k--) next();
+	}
+
         value_type next()
         {
             assert(m_idx <= m_c->size());

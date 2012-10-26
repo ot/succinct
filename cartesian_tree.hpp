@@ -118,32 +118,30 @@ namespace succinct {
                 boost::range_iterator<const Range>::type iter_type;
 
             std::vector<value_type> s;
-
-	    uint64_t n = 2 * boost::size(v) + 2;
-            bit_vector_builder bp(n);
-	    uint64_t i = n - 1;
+	    // construct the bitvector backwards and then reverse it
+            bit_vector_builder bp;
             
             for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
                 value_type cur = *it;
-		i--; // prepend 0
+		bp.push_back(0);
                 
                 while (!s.empty() && comp(cur, s.back())) { // cur < s.back() 
                     s.pop_back();
-                    bp.set(i--, 1); // prepend 1
+		    bp.push_back(1);
                 }
                 
                 s.push_back(cur);
             }
 	    
-	    i--; // fake root
-            
+	    // super-root
+	    bp.push_back(0);
             while (!s.empty()) {
                 s.pop_back();
-		bp.set(i--, 1); 
+		bp.push_back(1);
             }
+	    bp.push_back(1);
 
-	    bp.set(i--, 1); 
-
+	    bp.reverse();
             bp_vector(&bp, false, true).swap(m_bp);
 	}
 

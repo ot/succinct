@@ -19,6 +19,7 @@ BOOST_AUTO_TEST_CASE(bit_vector)
         for (size_t i = 0; i < v.size(); ++i) {
             bvb.push_back(v[i]);
         }
+
         succinct::bit_vector bitmap(&bvb);
         test_equal_bits(v, bitmap, "Random bits (push_back)");
     }
@@ -73,5 +74,30 @@ BOOST_AUTO_TEST_CASE(bit_vector_enumerator)
         e = succinct::bit_vector::enumerator(bitmap, pos);
         i += 1;
     }
+}
 
+void test_bvb_reverse(size_t n)
+{
+    std::vector<bool> v = random_bit_vector(n);
+    succinct::bit_vector_builder bvb;
+    for (size_t i = 0; i < v.size(); ++i) {
+	bvb.push_back(v[i]);
+    }
+
+    std::reverse(v.begin(), v.end());
+    bvb.reverse();
+
+    succinct::bit_vector bitmap(&bvb);
+    test_equal_bits(v, bitmap, "In-place reverse");
+}
+
+BOOST_AUTO_TEST_CASE(bvb_reverse)
+{
+    srand(42);
+    
+    test_bvb_reverse(0);
+    test_bvb_reverse(63);
+    test_bvb_reverse(64);
+    test_bvb_reverse(1000);
+    test_bvb_reverse(1024);
 }

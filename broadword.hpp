@@ -73,6 +73,14 @@ namespace broadword {
 #endif
     }
 
+    inline uint64_t reverse_bits(uint64_t x)
+    {
+	x = ((x >> 1) & magic_mask_1) | ((x & magic_mask_1) << 1);
+	x = ((x >> 2) & magic_mask_2) | ((x & magic_mask_2) << 2);
+	x = ((x >> 4) & magic_mask_3) | ((x & magic_mask_3) << 4);
+	return reverse_bytes(x);
+    }
+
     inline uint64_t select_in_word(const uint64_t x, const uint64_t k) 
     {
         assert(k < popcount(x));

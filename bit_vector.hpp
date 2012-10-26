@@ -109,6 +109,26 @@ namespace succinct {
             }
         }
 
+	// reverse in place
+	void reverse()
+	{
+	    uint64_t shift = 64 - (size() % 64);
+	    
+	    uint64_t remainder = 0;
+	    for (size_t i = 0; i < m_bits.size(); ++i) {
+		uint64_t cur_word;
+		if (shift != 64) { // this should be hoisted out
+		    cur_word = remainder | (m_bits[i] << shift);
+		    remainder = m_bits[i] >> (64 - shift);
+		} else {
+		    cur_word = m_bits[i];
+		}
+		m_bits[i] = broadword::reverse_bits(cur_word);
+	    }
+	    assert(remainder == 0);
+	    std::reverse(m_bits.begin(), m_bits.end());
+	}
+
         bits_type& move_bits() {
             assert(detail::words_for(m_size) == m_bits.size());
             return m_bits;
