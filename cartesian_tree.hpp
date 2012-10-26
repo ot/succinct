@@ -36,18 +36,68 @@ namespace succinct {
     class cartesian_tree : boost::noncopyable {
     public:
 
+	template <typename T>
+	class builder {
+	public:
+	    builder(uint64_t expected_size = 0)
+	    {
+		if (expected_size) {
+		    m_bp.reserve(2 * expected_size + 2);
+		}
+	    }
+	    
+	    template <typename Comparator>
+	    void push_back(T const& val, Comparator const& comp)
+	    {
+		m_bp.push_back(0);
+                
+                while (!m_stack.empty() 
+		       && comp(val, m_stack.back())) { // val < m_stack.back() 
+                    m_stack.pop_back();
+		    m_bp.push_back(1);
+                }
+                
+                m_stack.push_back(val);
+	    }
+	    
+	    bit_vector_builder& finalize()
+	    {
+		// super-root
+		m_bp.push_back(0);
+		while (!m_stack.empty()) {
+		    m_stack.pop_back();
+		    m_bp.push_back(1);
+		}
+		m_bp.push_back(1);
+		
+		m_bp.reverse();
+		return m_bp;
+	    }
+
+	    friend class cartesian_tree;
+	private:
+	    std::vector<T> m_stack;
+	    bit_vector_builder m_bp;
+	};
+
         cartesian_tree() {}
+	
+	template <typename T>
+	cartesian_tree(builder<T>* b)
+	{
+	    bp_vector(&b->finalize(), false, true).swap(m_bp);
+	}
         
         template <typename Range>
         cartesian_tree(Range const& v)
         {
-	    build_(v, std::less<typename boost::range_value<Range>::type>());
+	    build_from_range(v, std::less<typename boost::range_value<Range>::type>());
         }
 
         template <typename Range, typename Comparator>
         cartesian_tree(Range const& v, Comparator const& comp)
         {
-	    build_(v, comp);
+	    build_from_range(v, comp);
         }
         
         // NOTE: this is RMQ in the interval [a, b], b inclusive
@@ -110,39 +160,18 @@ namespace succinct {
     protected:
 	
         template <typename Range, typename Comparator>
-	void build_(Range const& v, Comparator const& comp)
+	void build_from_range(Range const& v, Comparator const& comp)
 	{
             typedef typename 
                 boost::range_value<Range>::type value_type;
             typedef typename
                 boost::range_iterator<const Range>::type iter_type;
 
-            std::vector<value_type> s;
-	    // construct the bitvector backwards and then reverse it
-            bit_vector_builder bp;
-            
+	    builder<value_type> b;
             for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
-                value_type cur = *it;
-		bp.push_back(0);
-                
-                while (!s.empty() && comp(cur, s.back())) { // cur < s.back() 
-                    s.pop_back();
-		    bp.push_back(1);
-                }
-                
-                s.push_back(cur);
+                b.push_back(*it, comp);
             }
-	    
-	    // super-root
-	    bp.push_back(0);
-            while (!s.empty()) {
-                s.pop_back();
-		bp.push_back(1);
-            }
-	    bp.push_back(1);
-
-	    bp.reverse();
-            bp_vector(&bp, false, true).swap(m_bp);
+            cartesian_tree(&b).swap(*this);
 	}
 
 
