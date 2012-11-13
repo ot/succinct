@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <queue>
+#include <algorithm>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
@@ -56,19 +56,22 @@ namespace succinct {
 		value_type cur_mid_val;
 		uint64_t cur_mid, cur_a, cur_b;
 
-		tie(cur_mid_val, cur_mid, cur_a, cur_b) = m_q.top(); 
-		m_q.pop();
+                std::pop_heap(m_q.begin(), m_q.end(), value_index_comparator());
+		tie(cur_mid_val, cur_mid, cur_a, cur_b) = m_q.back(); 
+		m_q.pop_back();
 		
                 m_cur = entry_type(cur_mid_val, cur_mid);
 		
 		if (cur_mid != cur_a) {
 		    uint64_t m = m_topkv->m_cartesian_tree.rmq(cur_a, cur_mid - 1);
-		    m_q.push(queue_element_type(m_topkv->m_v[m], m, cur_a, cur_mid - 1));
+		    m_q.push_back(queue_element_type(m_topkv->m_v[m], m, cur_a, cur_mid - 1));
+                    std::push_heap(m_q.begin(), m_q.end(), value_index_comparator());
 		}
 
 		if (cur_mid != cur_b) {
 		    uint64_t m = m_topkv->m_cartesian_tree.rmq(cur_mid + 1, cur_b);
-		    m_q.push(queue_element_type(m_topkv->m_v[m], m, cur_mid + 1, cur_b));
+		    m_q.push_back(queue_element_type(m_topkv->m_v[m], m, cur_mid + 1, cur_b));
+                    std::push_heap(m_q.begin(), m_q.end(), value_index_comparator());
 		}
                 
                 return true;
@@ -89,15 +92,16 @@ namespace succinct {
                 swap(m_cur, other.m_cur);
             }
             
-        protected:
+        private:
 
-            enumerator(topk_vector const* topkv, uint64_t a, uint64_t b) 
-                : m_topkv(topkv)
+            void set(topk_vector const* topkv, uint64_t a, uint64_t b) 
             {
                 assert(a <= b);
+                clear();
+                m_topkv = topkv;
 
                 uint64_t m = m_topkv->m_cartesian_tree.rmq(a, b);
-                m_q.push(queue_element_type(m_topkv->m_v[m], m, a, b));
+                m_q.push_back(queue_element_type(m_topkv->m_v[m], m, a, b));
             }
 
             typedef boost::tuple<value_type, uint64_t, uint64_t, uint64_t> queue_element_type;
@@ -115,21 +119,32 @@ namespace succinct {
                 }
             };
 
+        public:
+            void clear()
+            {
+                m_topkv = 0;
+                m_q.clear();
+            }
+            
+        private:
             topk_vector const* m_topkv;
-	    std::priority_queue<queue_element_type, 
-				std::vector<queue_element_type>, 
-				value_index_comparator> m_q;
+	    std::vector<queue_element_type> m_q;
             entry_type m_cur;
         };
         
         // NOTE this is b inclusive
         // XXX switch to [a, b) ?
-        enumerator 
-        get_topk_enumerator(uint64_t a, uint64_t b) const
+        void get_topk_enumerator(uint64_t a, uint64_t b, enumerator& ret) const
         {
-            return enumerator(this, a, b);
+            ret.set(this, a, b);
         }
         
+        enumerator get_topk_enumerator(uint64_t a, uint64_t b) const
+        {
+            enumerator ret;
+            get_topk_enumerator(a, b, ret);
+            return ret;
+        }
 
 	entry_vector_type
 	topk(uint64_t a, uint64_t b, size_t k) const
