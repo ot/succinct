@@ -121,13 +121,14 @@ namespace succinct {
 
             excess_t exc_w;
             uint64_t w = m_bp.excess_rmq(x, y, exc_w);
+            uint64_t rank0_w = (w - uint64_t(exc_w)) / 2;
             assert(m_bp[w - 1] == 0);
 
             uint64_t ret;
             if (exc_w >= exc_t - 1) {
                 ret = b;
             } else {
-                ret = n - m_bp.rank0(w);
+                ret = n - rank0_w;
             }
 
             assert(ret >= a);
