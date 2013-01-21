@@ -346,19 +346,23 @@ namespace succinct {
                 return val;
             }
 
-            inline uint8_t skip_zeros()
+            inline uint64_t skip_zeros()
             {
-                unsigned long l;
-                if (!broadword::lsb(m_buf, l)) {
+                uint64_t zs = 0;
+                // XXX the loop may be optimized by aligning access
+                while (!m_buf) {
+                    m_pos += m_avail;
+                    zs += m_avail;
+                    m_avail = 0;
                     fill_buf();
-                    uint8_t ret = broadword::lsb(m_buf, l);
-                    assert(ret); (void)ret;
                 }
+                
+                uint64_t l = broadword::lsb(m_buf);
                 m_buf >>= l;
                 m_buf >>= 1;
                 m_avail -= l + 1;
                 m_pos += l + 1;
-                return (uint8_t)l;
+                return zs + l;
             }
             
         private:
