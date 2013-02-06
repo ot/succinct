@@ -105,4 +105,21 @@ void test_delta(Vector const& bitmap, const char* test_name)
     }
 }
 
+template <class Vector>
+void test_select_enumeration(std::vector<bool> const& v, Vector const& bitmap, const char* test_name)
+{
+    // XXX test other starting points
+    typename Vector::select_enumerator it(bitmap, 0);
+
+    for (size_t i = 0; i < v.size(); ++i) {
+	if (v[i]) {
+	    uint64_t res = it.next();
+	    MY_REQUIRE_EQUAL(i,
+			     res,
+			     "select_iterator next (" << test_name << "), i = " << i 
+			     << ", n = " << bitmap.size() << ", m = " << bitmap.num_ones());
+	}
+    }
+}
+
 

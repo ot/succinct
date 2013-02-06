@@ -365,6 +365,11 @@ namespace succinct {
                 return zs + l;
             }
             
+	    inline uint64_t position() const
+	    {
+		return m_pos;
+	    }
+
         private:
 
             inline void fill_buf()

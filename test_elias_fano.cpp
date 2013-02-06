@@ -26,6 +26,7 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         test_equal_bits(v, bitmap, "Random bitmap");
         test_rank_select1(v, bitmap, "Random bitmap");
 	test_delta(bitmap, "Random bitmap");
+	test_select_enumeration(v, bitmap, "Random bitmap");
     }
 
     {
@@ -34,6 +35,7 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         succinct::elias_fano bitmap(&bvb);
         BOOST_REQUIRE_EQUAL(0U, bitmap.num_ones());
         test_equal_bits(std::vector<bool>(N), bitmap, "Empty bitmap");
+        test_select_enumeration(std::vector<bool>(N), bitmap, "Empty bitmap");
     }
 
     {
@@ -46,6 +48,7 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         test_equal_bits(v, bitmap, "Only one value");
         test_rank_select1(v, bitmap, "Only one value");
 	test_delta(bitmap, "Only one value");
+	test_select_enumeration(v, bitmap, "Only one value");
         BOOST_REQUIRE_EQUAL(1U, bitmap.num_ones());
     }
 
@@ -60,6 +63,7 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         test_equal_bits(v, bitmap, "Full bitmap");
         test_rank_select1(v, bitmap, "Full bitmap");
         test_delta(bitmap, "Full bitmap");
+        test_select_enumeration(v, bitmap, "Full bitmap");
     }
 }
 

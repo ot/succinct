@@ -5,6 +5,10 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   enable_testing()
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")	
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -stdlib=libc++")
+endif()
+
 find_package(Boost 1.42.0 COMPONENTS unit_test_framework iostreams system thread filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories (${Boost_LIBRARY_DIRS})

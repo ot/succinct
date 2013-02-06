@@ -158,7 +158,7 @@ namespace succinct {
         }
 
         inline uint64_t predecessor1(uint64_t pos) const {
-            return select(rank(pos + 1) - 1);
+	    return select(rank(pos + 1) - 1);
         }
 
         inline uint64_t successor1(uint64_t pos) const {
@@ -198,6 +198,34 @@ namespace succinct {
                                   ((high_val_e - n - 1) << m_l) | low_val_e);
         }
 	
+	struct select_enumerator {
+
+	    select_enumerator(elias_fano const& ef, uint64_t i)
+		: m_ef(&ef)
+		, m_i(i)
+	    {
+		if (!m_ef->num_ones()) return;
+		uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
+		m_high_enum = bit_vector::enumerator(m_ef->m_high_bits, pos);
+		m_low_enum = bit_vector::enumerator(m_ef->m_low_bits, m_i * m_ef->m_l);
+	    }
+
+	    uint64_t next() {
+		m_high_enum.skip_zeros();
+		uint64_t ret = 
+		    ((m_high_enum.position() - m_i - 1) << m_ef->m_l)
+		    | m_low_enum.take(m_ef->m_l);
+		m_i += 1;
+		return ret;
+	    }
+	    
+	private:
+	    elias_fano const* m_ef;
+	    uint64_t m_i;
+	    bit_vector::enumerator m_high_enum;
+	    bit_vector::enumerator m_low_enum;
+	};
+
     protected:
         void build(elias_fano_builder& builder, bool with_rank_index) {
             m_size = builder.m_n;
