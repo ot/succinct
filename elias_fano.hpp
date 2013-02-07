@@ -212,10 +212,10 @@ namespace succinct {
 
 	    uint64_t next() {
 		m_high_enum.skip_zeros();
-		uint64_t ret = 
-		    ((m_high_enum.position() - m_i - 1) << m_ef->m_l)
-		    | m_low_enum.take(m_ef->m_l);
 		m_i += 1;
+		uint64_t ret = 
+		    ((m_high_enum.position() - m_i) << m_ef->m_l)
+		    | m_low_enum.take(m_ef->m_l);
 		return ret;
 	    }
 	    
