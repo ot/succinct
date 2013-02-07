@@ -203,26 +203,64 @@ namespace succinct {
 	    select_enumerator(elias_fano const& ef, uint64_t i)
 		: m_ef(&ef)
 		, m_i(i)
+		, m_l(ef.m_l)
 	    {
 		if (!m_ef->num_ones()) return;
 		uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
-		m_high_enum = bit_vector::enumerator(m_ef->m_high_bits, pos);
-		m_low_enum = bit_vector::enumerator(m_ef->m_low_bits, m_i * m_ef->m_l);
+		m_high_enum.reset(m_ef->m_high_bits.data().data(), pos);
+		m_low_enum = bit_vector::enumerator(m_ef->m_low_bits, m_i * m_l);
 	    }
 
 	    uint64_t next() {
-		m_high_enum.skip_zeros();
-		m_i += 1;
 		uint64_t ret = 
-		    ((m_high_enum.position() - m_i) << m_ef->m_l)
-		    | m_low_enum.take(m_ef->m_l);
+		    ((m_high_enum.next() - m_i) << m_l)
+		    | m_low_enum.take(m_l);
+		m_i += 1;
 		return ret;
 	    }
 	    
 	private:
+	    
+	    struct unary_enumerator {
+		unary_enumerator()
+		    : m_data(0)
+		    , m_word_idx(0)
+		    , m_buf(0)
+		{}
+
+		void reset(uint64_t const* data, uint64_t pos)
+		{
+		    m_data = data;
+		    m_word_idx = pos / 64;
+		    m_buf = m_data[m_word_idx];
+		    // clear low bits
+		    uint64_t pos_in_word = pos % 64;
+		    if (pos_in_word) {
+			m_buf &= (uint64_t(1) << pos_in_word) - 1;
+		    }
+		}
+		
+		uint64_t next()
+		{
+		    while (!m_buf) {
+			m_buf = m_data[++m_word_idx];
+		    }
+		    
+		    uint64_t pos_in_word = broadword::lsb(m_buf);
+		    m_buf &= m_buf - 1; // clear LSB
+		    return m_word_idx * 64 + pos_in_word;		    
+		}
+
+	    private:
+		uint64_t const* m_data;
+		uint64_t m_word_idx;
+		uint64_t m_buf;
+	    };
+
 	    elias_fano const* m_ef;
 	    uint64_t m_i;
-	    bit_vector::enumerator m_high_enum;
+	    uint64_t m_l;
+	    unary_enumerator m_high_enum;
 	    bit_vector::enumerator m_low_enum;
 	};
 
