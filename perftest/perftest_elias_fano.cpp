@@ -2,6 +2,9 @@
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 #include "util.hpp"
 
@@ -10,20 +13,72 @@
 
 #include "perftest_common.hpp"
 
-void ef_enumeration_benchmark(uint32_t m, uint32_t max_value)
+struct monotone_generator
 {
-    std::vector<uint32_t> v(m);
-    for (size_t i = 0; i < m; ++i) { 
-	v[i] = rand() % max_value;
+    monotone_generator(uint64_t m, uint8_t bits, uint64_t seed)
+	: m_bits(bits)
+	, m_gen(seed)
+    {
+	m_stack.push_back(state_t(0, m, 0));
     }
+    
+    uint64_t next()
+    {
+	uint64_t cur_word, cur_m;
+	uint8_t cur_depth;
+	
+	assert(m_stack.size());
+	boost::tie(cur_word, cur_m, cur_depth) = m_stack.back();
+	m_stack.pop_back();
+	
+	while (cur_depth < m_bits) {
+	    boost::random::uniform_int_distribution<> dist(0, cur_m);
+	    uint64_t left_m = dist(m_gen);
+	    uint64_t right_m = cur_m - left_m;
+	    
+	    // push left and right children, if present
+	    if (right_m > 0) {
+		m_stack.push_back(state_t(cur_word | (uint64_t(1) << (m_bits - cur_depth - 1)),
+					  right_m, cur_depth + 1));
+	    }
+	    if (left_m > 0) {
+		m_stack.push_back(state_t(cur_word, left_m, cur_depth + 1));
+		
+	    }
 
-    std::sort(v.begin(), v.end());
-    succinct::elias_fano::elias_fano_builder bvb(max_value, m);
+	    // pop next child in visit
+	    boost::tie(cur_word, cur_m, cur_depth) = m_stack.back();
+	    m_stack.pop_back();
+	}
+
+	if (cur_m > 1) {
+	    // push back the current leaf, with cur_m decreased by one
+	    m_stack.push_back(state_t(cur_word, cur_m - 1, cur_depth));
+	}
+
+	return cur_word;
+    }
+    
+private:
+    typedef boost::tuple<uint64_t /* cur_word */, 
+			 uint64_t /* cur_m */,
+			 uint8_t /* cur_depth */> state_t;
+    std::vector<state_t> m_stack;
+    boost::random::mt19937 m_gen;
+    uint8_t m_bits;
+};
+
+void ef_enumeration_benchmark(uint64_t m, uint8_t bits)
+{
+    succinct::elias_fano::elias_fano_builder bvb(uint64_t(1) << bits, m);
+    monotone_generator mgen(m, bits, 37);
     for (size_t i = 0; i < m; ++i) { 
-	bvb.push_back(v[i]);
+	bvb.push_back(mgen.next());
     }
 
     succinct::elias_fano ef(&bvb);
+    succinct::mapper::size_tree_of(ef)->dump();
+    
     
     double elapsed;
     uint64_t foo;
@@ -40,8 +95,8 @@ void ef_enumeration_benchmark(uint32_t m, uint32_t max_value)
 
 int main(int argc, char** argv)
 {
-    size_t m = boost::lexical_cast<uint32_t>(argv[1]);
-    size_t max_value = boost::lexical_cast<uint32_t>(argv[2]);
+    size_t m = boost::lexical_cast<uint64_t>(argv[1]);
+    uint8_t bits = uint8_t(boost::lexical_cast<int>(argv[2]));
         
-    ef_enumeration_benchmark(m, max_value);
+    ef_enumeration_benchmark(m, bits);
 }
