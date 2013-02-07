@@ -26,14 +26,14 @@ void ef_enumeration_benchmark(uint32_t m, uint32_t max_value)
     succinct::elias_fano ef(&bvb);
     
     double elapsed;
-    uint32_t foo;
+    uint64_t foo;
     SUCCINCT_TIMEIT(elapsed) {
 	succinct::elias_fano::select_enumerator it(ef, 0);
 	for (size_t i = 0; i < m; ++i) {
-	    foo += it.next();
+	    foo ^= it.next();
 	}
     }
-    volatile uint32_t vfoo = foo;
+    volatile uint64_t vfoo = foo;
     std::cerr << "Elapsed: " << elapsed / 1000 << " msec\n"
 	      << m / elapsed << " Mcodes/s" << std::endl;
 }
