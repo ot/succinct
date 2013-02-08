@@ -58,6 +58,11 @@ struct monotone_generator
 
 	return cur_word;
     }
+
+    bool done() const 
+    {
+	return m_stack.empty();
+    }
     
 private:
     typedef boost::tuple<uint64_t /* cur_word */, 
@@ -75,6 +80,7 @@ void ef_enumeration_benchmark(uint64_t m, uint8_t bits)
     for (size_t i = 0; i < m; ++i) { 
 	bvb.push_back(mgen.next());
     }
+    assert(mgen.done());
 
     succinct::elias_fano ef(&bvb);
     succinct::mapper::size_tree_of(ef)->dump();
