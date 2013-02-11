@@ -403,11 +403,11 @@ namespace succinct {
 		
             uint64_t next()
             {
-                while (!m_buf) {
+                unsigned long pos_in_word;
+                while (!broadword::lsb(m_buf, pos_in_word)) {
                     m_buf = m_data[++m_word_idx];
                 }
 		    
-                uint64_t pos_in_word = broadword::lsb(m_buf);
                 m_buf &= m_buf - 1; // clear LSB
                 return m_word_idx * 64 + pos_in_word;		    
             }

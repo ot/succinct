@@ -95,11 +95,13 @@ namespace succinct {
         forward_enumerator(gamma_bit_vector const& c, size_t idx = 0)
             : m_c(&c)
             , m_idx(idx)
+            , m_pos(0)
         {
             if (idx < m_c->size()) {
-                size_t pos = m_c->m_high_bits.select(idx);
-                m_high_bits_enumerator = bit_vector::enumerator(m_c->m_high_bits.bits(), pos + 1);
-                m_low_bits_enumerator = bit_vector::enumerator(m_c->m_low_bits, pos);
+                m_pos = m_c->m_high_bits.select(idx);
+                m_high_bits_enumerator = 
+                    bit_vector::unary_enumerator(m_c->m_high_bits.bits(), m_pos + 1);
+                m_low_bits_enumerator = bit_vector::enumerator(m_c->m_low_bits, m_pos);
             }
         }
 
@@ -112,7 +114,9 @@ namespace succinct {
         value_type next()
         {
             assert(m_idx <= m_c->size());
-            size_t l = m_high_bits_enumerator.skip_zeros();
+            size_t next_pos = m_high_bits_enumerator.next();
+            size_t l = next_pos - m_pos - 1;
+            m_pos = next_pos;
 	    uint64_t chunk = m_low_bits_enumerator.take(l + 1);
             uint64_t val = (chunk | (uint64_t(1) << (l + 1))) - 2;
             m_idx += 1;
@@ -122,8 +126,9 @@ namespace succinct {
     private:
         gamma_bit_vector const* m_c;
         size_t m_idx;
+        size_t m_pos;
 
-        bit_vector::enumerator m_high_bits_enumerator;
+        bit_vector::unary_enumerator m_high_bits_enumerator;
         bit_vector::enumerator m_low_bits_enumerator;
     };
 }
