@@ -6,17 +6,17 @@
 #define SUCCINCT_USE_INTRINSICS 1
 #endif
 
-#if SUCCINCT_USE_INTRINSICS
-
-#include <xmmintrin.h>
-
 #if defined(__GNUC__) || defined(__clang__)
 #    define __INTRIN_INLINE inline __attribute__((__always_inline__))
 #elif defined(_MSC_VER)
 #    define __INTRIN_INLINE inline __forceinline
 #else
-#    error Unsupported platform
+#    define __INTRIN_INLINE inline
 #endif
+
+#if SUCCINCT_USE_INTRINSICS
+
+#include <xmmintrin.h>
 
 namespace succinct {
 namespace intrinsics {
