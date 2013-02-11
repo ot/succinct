@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 project(SUCCINCT)
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/succinct_config.hpp.in
-  ${CMAKE_SOURCE_DIR}/succinct_config.hpp)
+  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp.in
+  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp)
 
 option(SUCCINCT_USE_LIBCXX 
   "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost)" 
