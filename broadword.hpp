@@ -56,9 +56,11 @@ namespace broadword {
 
     inline uint64_t popcount(uint64_t x) 
     {
-	// TODO(ot): may be worth to try the popcnt instruction
-	// on platforms that support it
+#if SUCCINCT_USE_POPCNT
+	return intrinsics::popcount(x);
+#else
         return bytes_sum(byte_counts(x));
+#endif
     }
         
     inline uint64_t reverse_bytes(uint64_t x) 

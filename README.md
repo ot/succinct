@@ -48,7 +48,7 @@ Same instructions for Unix apply, with one exception: the library must
 be compiled with the same standard library used to compile Boost. So,
 if libc++ was used with Clang, the following command must be used:
 
-    $ cmake . -DSUCCINCT_USE_LIBCXX=ON
+    $ cmake . -DSUCCINCT_USE_LIBCXX=1
 
 
 ### Building on Windows ###

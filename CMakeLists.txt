@@ -1,13 +1,33 @@
 cmake_minimum_required(VERSION 2.6)
 project(SUCCINCT)
 
+configure_file(
+  ${CMAKE_SOURCE_DIR}/succinct_config.hpp.in
+  ${CMAKE_SOURCE_DIR}/succinct_config.hpp)
+
+option(SUCCINCT_USE_LIBCXX 
+  "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost)" 
+  OFF)
+option(SUCCINCT_USE_INTRINSICS
+  "Use a set of intrinsics available on all x86-64 architectures"
+  ON)
+option(SUCCINCT_USE_POPCNT
+  "Use popcount intrinsic. Available on x86-64 since SSE4.2."
+  OFF)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")	
-   option(SUCCINCT_USE_LIBCXX 
-     "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost" OFF)
    if (SUCCINCT_USE_LIBCXX) 
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-   endif()
-endif()
+   endif ()
+endif ()
+
+if (SUCCINCT_USE_POPCNT)
+  if (UNIX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
+  endif ()
+  # XXX(ot): what to do for MSVC?
+endif ()
+    
 
 find_package(Boost 1.42.0 COMPONENTS 
   unit_test_framework iostreams system filesystem REQUIRED)
@@ -38,7 +58,7 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
       )
     add_test(${TEST_SRC_NAME} ${TEST_SRC_NAME})
   endforeach(TEST_SRC)
-endif()
+endif ()
 
 
 
