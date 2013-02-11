@@ -8,8 +8,10 @@ mostly undocumented and uncommented, and probably generally unclear.
 The "library" was part of the
 [semi_index](https://github.com/ot/semi_index) project and has been
 factored out. It is meant to be included as a git submodule in other
-projects and then included as a CMake subdirectory. See the
-[semi_index](https://github.com/ot/semi_index) project for an example.
+projects and then included as a CMake subdirectory. See the unit
+tests, and the [semi_index](https://github.com/ot/semi_index) and
+[path_decomposed_tries](https://github.com/ot/path_decomposed_tries)
+projects for examples.
 
 How to build the code
 ---------------------
@@ -37,7 +39,17 @@ sufficient to do the following:
     $ cmake .
     $ make
 
-It is also advised to perform a `make test`, which runs the unit tests.
+It is also advised to perform a `make test`, which runs the unit
+tests.
+
+### Builing on Mac OS X ###
+
+Same instructions for Unix apply, with one exception: the library must
+be compiled with the same standard library used to compile Boost. So,
+if libc++ was used with Clang, the following command must be used:
+
+    $ cmake . -DSUCCINCT_USE_LIBCXX=ON
+
 
 ### Building on Windows ###
 
