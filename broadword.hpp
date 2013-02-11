@@ -104,34 +104,9 @@ namespace broadword {
         return (x ^ y) <= (x & y);
     }
 
-    inline uint8_t msb(uint64_t x, unsigned long& ret) {
-#if SUCCINCT_USE_INTRINSICS
-        return intrinsics::bsr64(&ret, x);
-#else
-        if (!x) {
-            return false;
-        }
-        // From Knuth
-        ret = (unsigned long)
-            ((same_msb(x, x & ~magic_mask_1)     ) +
-             (same_msb(x, x & ~magic_mask_2) << 1) +
-             (same_msb(x, x & ~magic_mask_3) << 2) +
-             (same_msb(x, x & ~magic_mask_4) << 3) +
-             (same_msb(x, x & ~magic_mask_5) << 4) +
-             (same_msb(x, x & ~magic_mask_6) << 5) );
-        return true;
-#endif
-    }
-
-    inline uint8_t msb(uint64_t x) {
-        assert(x);
-        unsigned long ret;
-        msb(x, ret);
-        return (uint8_t)ret;
-    }
-
     namespace detail {
-        const uint8_t lsb_bit_table[64] = {
+        // Adapted from LSB of Chess Programming Wiki
+        static const uint8_t debruijn64_mapping[64] = {
             63,  0, 58,  1, 59, 47, 53,  2,
             60, 39, 48, 27, 54, 33, 42,  3,
             61, 51, 37, 40, 49, 18, 28, 20,
@@ -141,23 +116,65 @@ namespace broadword {
             56, 45, 25, 31, 35, 16,  9, 12,
             44, 24, 15,  8, 23,  7,  6,  5
         };
+	static const uint64_t debruijn64 = 0x07EDD5E59A4E28C2ULL;
+    }
+
+    // return the position of the single bit set in the word x
+    inline uint8_t bit_position(uint64_t x)
+    {
+	assert(popcount(x) == 1);
+	return detail::debruijn64_mapping
+	    [(x * detail::debruijn64) >> 58];
     }
  
-    inline uint8_t lsb(uint64_t x, unsigned long& ret) {
+    inline uint8_t msb(uint64_t x, unsigned long& ret) 
+    {
+#if SUCCINCT_USE_INTRINSICS
+        return intrinsics::bsr64(&ret, x);
+#else
+        if (!x) {
+            return false;
+        }
+	
+	// right-saturate the word
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	x |= x >> 32;
+
+	// isolate the MSB
+	x ^= x >> 1;
+        ret = bit_position(x);
+	
+        return true;
+#endif
+    }
+
+    inline uint8_t msb(uint64_t x) 
+    {
+        assert(x);
+        unsigned long ret;
+        msb(x, ret);
+        return (uint8_t)ret;
+    }
+
+    inline uint8_t lsb(uint64_t x, unsigned long& ret) 
+    {
 #if SUCCINCT_USE_INTRINSICS
         return intrinsics::bsf64(&ret, x);
 #else
         if (!x) {
             return false;
         }
-        // Adapted from LSB of Chess Programming Wiki
-        const uint64_t debruijn64 = 0x07EDD5E59A4E28C2ULL;
-        ret = detail::lsb_bit_table[((x & -int64_t(x)) * debruijn64) >> 58];
+        ret = bit_position(x & -int64_t(x));
         return true;
 #endif
     }
 
-    inline uint8_t lsb(uint64_t x) {
+    inline uint8_t lsb(uint64_t x) 
+    {
         assert(x);
         unsigned long ret;
         lsb(x, ret);
