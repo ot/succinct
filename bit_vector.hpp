@@ -384,9 +384,43 @@ namespace succinct {
             size_t m_avail;
         };
 
+        struct unary_enumerator {
+            unary_enumerator()
+                : m_data(0)
+                , m_word_idx(0)
+                , m_buf(0)
+            {}
+
+            unary_enumerator(bit_vector const& bv, uint64_t pos)
+            {
+                m_data = bv.data().data();
+                m_word_idx = pos / 64;
+                m_buf = m_data[m_word_idx];
+                // clear low bits
+                uint64_t pos_in_word = pos % 64;
+                m_buf &= uint64_t(-1) << pos_in_word;
+            }
+		
+            uint64_t next()
+            {
+                while (!m_buf) {
+                    m_buf = m_data[++m_word_idx];
+                }
+		    
+                uint64_t pos_in_word = broadword::lsb(m_buf);
+                m_buf &= m_buf - 1; // clear LSB
+                return m_word_idx * 64 + pos_in_word;		    
+            }
+
+        private:
+            uint64_t const* m_data;
+            uint64_t m_word_idx;
+            uint64_t m_buf;
+        };
+
     protected:
         size_t m_size;
         mapper::mappable_vector<uint64_t> m_bits;
     };
-    
+   
 }

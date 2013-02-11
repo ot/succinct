@@ -15,18 +15,21 @@ BOOST_AUTO_TEST_CASE(elias_fano)
 
     {
         // Random bitmap
-        std::vector<bool> v = random_bit_vector(N);
+        for (size_t d = 1; d < 8; ++d) {
+            double density = 1.0 / (1 << d);
+            std::vector<bool> v = random_bit_vector(N, density);
 
-        succinct::bit_vector_builder bvb;
-        for (size_t i = 0; i < v.size(); ++i) {
-            bvb.push_back(v[i]);
+            succinct::bit_vector_builder bvb;
+            for (size_t i = 0; i < v.size(); ++i) {
+                bvb.push_back(v[i]);
+            }
+
+            succinct::elias_fano bitmap(&bvb);
+            test_equal_bits(v, bitmap, "Random bitmap");
+            test_rank_select1(v, bitmap, "Random bitmap");
+            test_delta(bitmap, "Random bitmap");
+            test_select_enumeration(v, bitmap, "Random bitmap");
         }
-
-        succinct::elias_fano bitmap(&bvb);
-        test_equal_bits(v, bitmap, "Random bitmap");
-        test_rank_select1(v, bitmap, "Random bitmap");
-	test_delta(bitmap, "Random bitmap");
-	test_select_enumeration(v, bitmap, "Random bitmap");
     }
 
     {
