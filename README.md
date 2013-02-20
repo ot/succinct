@@ -1,13 +1,12 @@
 succinct
 ========
 
-This repository contains the implementation of some data structures. I
-wrote this code during my Ph.D. for my own experiments, so it is
-mostly undocumented and uncommented, and probably generally unclear. 
+This library contains the implementation of some succinct data
+structures. It is rather undocumented now, but better documentation is
+under way. On the other hand, the code is quite extensively
+unit-tested.
 
-The "library" was part of the
-[semi_index](https://github.com/ot/semi_index) project and has been
-factored out. It is meant to be included as a git submodule in other
+The library is meant to be imported as a git submodule in other
 projects and then included as a CMake subdirectory. See the unit
 tests, and the [semi_index](https://github.com/ot/semi_index) and
 [path_decomposed_tries](https://github.com/ot/path_decomposed_tries)
@@ -25,11 +24,13 @@ The following dependencies have to be installed to compile the library.
 
 ### Supported systems ###
 
-The code has been developed and tested mainly on Linux, but it has
-been tested also on Mac OS X and Windows 7.
+The library is developed and tested mainly on Linux and Mac OS X, and
+it has been tested also on Windows 7.
 
-The code has been tested only on x86-64. Compiling it on 32bit
-architectures would probably require some work.
+The code is designed for 64-bit architectures. It has been tested on
+32-bit Linux as well, but it is significantly slower. To compile the
+library on 32-bit architectures it is necessary to disable intrinsics
+support, passing -DSUCCINCT_USE_INTRINSICS=OFF to cmake.
 
 ### Building on Unix ###
 
@@ -48,7 +49,7 @@ Same instructions for Unix apply, with one exception: the library must
 be compiled with the same standard library used to compile Boost. So,
 if libc++ was used with Clang, the following command must be used:
 
-    $ cmake . -DSUCCINCT_USE_LIBCXX=1
+    $ cmake . -DSUCCINCT_USE_LIBCXX=ON
 
 
 ### Building on Windows ###
