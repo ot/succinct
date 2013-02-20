@@ -157,7 +157,7 @@ namespace broadword {
     inline uint8_t msb(uint64_t x) 
     {
         assert(x);
-        unsigned long ret;
+        unsigned long ret = -1;
         msb(x, ret);
         return (uint8_t)ret;
     }
@@ -178,7 +178,7 @@ namespace broadword {
     inline uint8_t lsb(uint64_t x) 
     {
         assert(x);
-        unsigned long ret;
+        unsigned long ret = -1;
         lsb(x, ret);
         return (uint8_t)ret;
     }

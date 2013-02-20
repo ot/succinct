@@ -113,7 +113,7 @@ namespace succinct {
 	    uint64_t n = size();
 
             uint64_t t = m_bp.select0(n - b - 1);
-            excess_t exc_t = excess_t(t) - 2 * (n - b - 1);
+            excess_t exc_t = excess_t(t - 2 * (n - b - 1));
             assert(exc_t - 1 == m_bp.excess(t + 1));
 
             uint64_t x = m_bp.select0(n - b);

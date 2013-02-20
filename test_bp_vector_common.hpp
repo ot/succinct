@@ -39,7 +39,7 @@ namespace succinct {
     {
 	int excess = 0;
 	for (size_t i = 0; i < size_est; ++i) {
-	    int val = rand() > RAND_MAX / 2;
+	    bool val = rand() > RAND_MAX / 2;
 	    if (excess <= 1 && !val) {
 		val = 1;
 	    }

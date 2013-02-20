@@ -32,6 +32,7 @@ endif ()
 # XXX(ot): enable this on all compilers
 if (UNIX)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-braces")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
 endif ()
     
 

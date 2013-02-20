@@ -33,7 +33,7 @@ double time_avg_rmq(succinct::cartesian_tree const& tree, size_t sample_size = 1
     }
 
     (void)foo; // silence warning
-    return elapsed / rmq_performed;
+    return elapsed / double(rmq_performed);
 }
 
 void rmq_benchmark(size_t runs)
@@ -56,7 +56,7 @@ void rmq_benchmark(size_t runs)
             succinct::cartesian_tree tree(v);
 	    elapsed += time_avg_rmq(tree, sample_size);
 	}
-	std::cout << ln << "\t" << elapsed / runs << std::endl;
+	std::cout << ln << "\t" << elapsed / double(runs) << std::endl;
     }
 }
 

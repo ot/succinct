@@ -15,7 +15,7 @@
 
 struct monotone_generator
 {
-    monotone_generator(uint64_t m, uint8_t bits, uint64_t seed)
+    monotone_generator(uint64_t m, uint8_t bits, unsigned int seed)
 	: m_gen(seed)
         , m_bits(bits)
     {
@@ -32,7 +32,7 @@ struct monotone_generator
 	m_stack.pop_back();
 	
 	while (cur_depth < m_bits) {
-	    boost::random::uniform_int_distribution<> dist(0, cur_m);
+	    boost::random::uniform_int_distribution<> dist(0, (int)cur_m);
 	    uint64_t left_m = dist(m_gen);
 	    uint64_t right_m = cur_m - left_m;
 	    
@@ -67,7 +67,7 @@ struct monotone_generator
 private:
     typedef boost::tuple<uint64_t /* cur_word */, 
 			 uint64_t /* cur_m */,
-			 uint8_t /* cur_depth */> state_t;
+			 uint64_t /* cur_depth */> state_t;
     std::vector<state_t> m_stack;
     boost::random::mt19937 m_gen;
     uint8_t m_bits;
@@ -87,7 +87,7 @@ void ef_enumeration_benchmark(uint64_t m, uint8_t bits)
     
     
     double elapsed;
-    uint64_t foo;
+    uint64_t foo = 0;
     SUCCINCT_TIMEIT(elapsed) {
 	succinct::elias_fano::select_enumerator it(ef, 0);
 	for (size_t i = 0; i < m; ++i) {
@@ -98,7 +98,7 @@ void ef_enumeration_benchmark(uint64_t m, uint8_t bits)
     (void)vfoo; // silence warning
 
     std::cerr << "Elapsed: " << elapsed / 1000 << " msec\n"
-	      << m / elapsed << " Mcodes/s" << std::endl;
+	      << double(m) / elapsed << " Mcodes/s" << std::endl;
 }
 
 int main(int argc, char** argv)

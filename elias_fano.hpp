@@ -17,7 +17,7 @@ namespace succinct {
                 , m_m(m)
                 , m_pos(0)
                 , m_last(0)
-                , m_l((m && n / m) ? broadword::msb(n / m) : 0)
+                , m_l(uint8_t((m && n / m) ? broadword::msb(n / m) : 0))
                 , m_high_bits((m + 1) + (n >> m_l) + 1)
             {
                 assert(m_l < 64); // for the correctness of low_mask
@@ -205,19 +205,20 @@ namespace succinct {
 		, m_i(i)
 		, m_l(ef.m_l)
 	    {
-		if (!m_ef->num_ones()) return;
-		uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
-		m_high_enum =  bit_vector::unary_enumerator(m_ef->m_high_bits, pos);
-		assert(m_l < 64);
 		m_low_mask = (uint64_t(1) << m_l) - 1;
 		m_low_buf = 0;
 		if (m_l) {
-		    m_chunks_in_word = int(64 / m_l);
+		    m_chunks_in_word = 64 / m_l;
 		    m_chunks_avail = 0;
 		} else { 
 		    m_chunks_in_word = 0;
 		    m_chunks_avail = m_ef->num_ones();
 		}
+
+		if (!m_ef->num_ones()) return;
+		uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
+		m_high_enum =  bit_vector::unary_enumerator(m_ef->m_high_bits, pos);
+		assert(m_l < 64);
 	    }
 
 	    uint64_t next() {
@@ -246,8 +247,8 @@ namespace succinct {
             bit_vector::unary_enumerator m_high_enum;
 	    uint64_t m_low_buf;
 	    uint64_t m_low_mask;
-	    int m_chunks_in_word;
-	    int m_chunks_avail;
+	    uint64_t m_chunks_in_word;
+	    uint64_t m_chunks_avail;
 	};
 
     protected:

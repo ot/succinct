@@ -31,7 +31,8 @@ struct succinct_bp_vector_traits
 
     static inline double bits_per_bp(bp_vector_type& vec)
     {
-	return double(succinct::mapper::size_of(vec)) * 8.0 / vec.size();
+	return double(succinct::mapper::size_of(vec)) 
+            * 8.0 / double(vec.size());
     }
 	
 };
@@ -67,7 +68,7 @@ double time_visit(BpVector const& bp, size_t sample_size = 1000000)
     }
 
     (void)foo; // silence warning
-    return elapsed / find_close_performed;
+    return elapsed / double(find_close_performed);
 }
 
 template <typename BpVectorTraits>
@@ -97,7 +98,10 @@ void bp_benchmark(size_t runs)
 	    elapsed += time_visit(bp, sample_size);
 	    bits_per_bp += BpVectorTraits::bits_per_bp(bp);
 	}
-	std::cout << ln << "\t" << elapsed / runs << "\t" << bits_per_bp / runs<< std::endl;
+	std::cout << ln 
+                  << "\t" << elapsed / double(runs)
+                  << "\t" << bits_per_bp / double(runs)
+                  << std::endl;
     }
 }
 

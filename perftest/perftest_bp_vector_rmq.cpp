@@ -33,7 +33,7 @@ double time_avg_rmq(succinct::bp_vector const& bp, size_t sample_size = 1000000)
     }
 
     (void)foo; // silence warning
-    return elapsed / rmq_performed;
+    return elapsed / double(rmq_performed);
 }
 
 void build_random_binary_tree(succinct::bp_vector& bp, size_t size) 
@@ -59,7 +59,7 @@ void rmq_benchmark(size_t runs)
 	    build_random_binary_tree(bp, n);
 	    elapsed += time_avg_rmq(bp, sample_size);
 	}
-	std::cout << ln << "\t" << elapsed / runs << std::endl;
+	std::cout << ln << "\t" << elapsed / double(runs) << std::endl;
     }
 }
 

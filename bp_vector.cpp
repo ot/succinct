@@ -28,13 +28,13 @@ namespace succinct {
                             --excess;
                             if (excess < 0 && 
                                 m_fwd_pos[c][-excess] == 0) { // not already found
-                                m_fwd_pos[c][-excess] = i + 1;
+                                m_fwd_pos[c][-excess] = uint8_t(i + 1);
                             }
                         }
 
                         if (-excess > m_fwd_min[c]) {
-                            m_fwd_min[c] = -excess;
-                            m_fwd_min_idx[c] = i + 1;
+                            m_fwd_min[c] = uint8_t(-excess);
+                            m_fwd_min_idx[c] = uint8_t(i + 1);
                         }
                     }
 		    m_fwd_exc[c] = (char)excess;
@@ -48,13 +48,13 @@ namespace succinct {
                             ++excess;
                             if (excess > 0 && 
                                 m_bwd_pos[c][(uint8_t)excess] == 0) { // not already found
-                                m_bwd_pos[c][(uint8_t)excess] = i + 1;
+                                m_bwd_pos[c][(uint8_t)excess] = uint8_t(i + 1);
                             }
                         } else { // closing
                             --excess;
                         }
 
-		 	m_bwd_min[c] = std::max(excess, (int)m_bwd_min[c]);
+		 	m_bwd_min[c] = uint8_t(std::max(excess, (int)m_bwd_min[c]));
                     }
                 }
             }
@@ -126,8 +126,8 @@ namespace succinct {
             int min_byte_idx = 0;
 
 	    for (int i = 0; i < 8; ++i) {
-		uint8_t shift = i * 8;
-		uint8_t byte = (word >> shift) & 0xFF;
+		int shift = i * 8;
+		int byte = (word >> shift) & 0xFF;
                 // m_fwd_min is negated
                 bp_vector::excess_t cur_min = exc - tables.m_fwd_min[byte];
 
@@ -139,7 +139,7 @@ namespace succinct {
             
             if (min_byte_exc < min_exc) {
                 min_exc = min_byte_exc;
-                uint8_t shift = min_byte_idx * 8;
+                int shift = min_byte_idx * 8;
                 min_exc_idx = word_start + shift + tables.m_fwd_min_idx[(word >> shift) & 0xFF];
             }
         }
@@ -543,7 +543,7 @@ namespace succinct {
         uint64_t block_a = word_a_idx / bp_block_size;
         uint64_t block_b = word_b_idx / bp_block_size;
 
-        cur_exc -= 64 - subword_len_a; // remove padding
+        cur_exc -= 64 - excess_t(subword_len_a); // remove padding
 
         if (block_a == block_b) {
             // same block

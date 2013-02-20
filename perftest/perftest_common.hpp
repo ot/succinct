@@ -14,7 +14,7 @@ namespace detail {
         bool done() { return m_done; } 
     
         void report(double& elapsed) {
-            elapsed = (boost::posix_time::microsec_clock::universal_time() - m_tick).total_microseconds();
+            elapsed = (double)(boost::posix_time::microsec_clock::universal_time() - m_tick).total_microseconds();
             m_done = true;
         }
     
