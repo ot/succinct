@@ -90,7 +90,7 @@ namespace broadword {
         uint64_t byte_sums = byte_counts(x) * ones_step_8;
 
         const uint64_t k_step_8 = k * ones_step_8;
-        const uint64_t place = (leq_step_8(byte_sums, k_step_8) * ones_step_8 >> 53) & ~0x7;
+        const uint64_t place = (leq_step_8(byte_sums, k_step_8) * ones_step_8 >> 53) & uint64_t(~0x7);
 
         const uint64_t byte_rank = k - (((byte_sums << 8) >> place) & 0xFF);
         const uint64_t spread_bits = (x >> place & 0xFF) * ones_step_8 & incr_step_8;
@@ -157,7 +157,7 @@ namespace broadword {
     inline uint8_t msb(uint64_t x) 
     {
         assert(x);
-        unsigned long ret = -1;
+        unsigned long ret = 0;
         msb(x, ret);
         return (uint8_t)ret;
     }
@@ -178,7 +178,7 @@ namespace broadword {
     inline uint8_t lsb(uint64_t x) 
     {
         assert(x);
-        unsigned long ret = -1;
+        unsigned long ret = 0;
         lsb(x, ret);
         return (uint8_t)ret;
     }

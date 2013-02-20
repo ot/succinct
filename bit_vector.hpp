@@ -27,7 +27,7 @@ namespace succinct {
         bit_vector_builder(uint64_t size = 0, bool init = 0)
             : m_size(size)
         {
-            m_bits.resize(detail::words_for(size), -int64_t(init));
+            m_bits.resize(detail::words_for(size), uint64_t(-init));
             if (size) {
                 m_cur_word = &m_bits.back();
                 // clear padding bits

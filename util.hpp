@@ -190,7 +190,7 @@ namespace util {
             if (begin != end && *(end - 1) == '\r') {
                 --end;
             }
-            m_cur_value = std::string(begin, end - begin);
+            m_cur_value = std::string(begin, size_t(end - begin));
         }
 
         bool equal(buffer_line_iterator const& other) const
@@ -248,9 +248,9 @@ namespace util {
     inline uint64_t int2nat(int64_t x)
     {
         if (x < 0) {
-            return -2 * x - 1;
+            return uint64_t(-2 * x - 1);
         } else {
-            return 2 * x;
+            return uint64_t(2 * x);
         }
     }
 
@@ -259,14 +259,16 @@ namespace util {
         if (n % 2) {
             return -int64_t((n + 1) / 2);
         } else {
-            return n / 2;
+            return int64_t(n / 2);
         }
     }
     
     template <typename IntType1, typename IntType2>
     inline IntType1 ceil_div(IntType1 dividend, IntType2 divisor)
     {
-	return (dividend + divisor - 1) / divisor;
+	// XXX(ot): put some static check that IntType1 >= IntType2
+	IntType1 d = IntType1(divisor);
+	return IntType1(dividend + d - 1) / d;
     }
 }
 }
