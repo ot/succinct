@@ -44,7 +44,7 @@ double time_visit(BpVector const& bp, size_t sample_size = 1000000)
         random_bits.push_back(rand() > (RAND_MAX / 2));
     }
     
-    volatile size_t foo; // to prevent the compiler to optimize away the loop
+    volatile size_t foo = 0; // to prevent the compiler to optimize away the loop
 
     size_t find_close_performed = 0;
     size_t steps_done = 0;
@@ -66,6 +66,7 @@ double time_visit(BpVector const& bp, size_t sample_size = 1000000)
         }
     }
 
+    (void)foo; // silence warning
     return elapsed / find_close_performed;
 }
 

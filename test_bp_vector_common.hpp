@@ -47,7 +47,7 @@ namespace succinct {
 	    builder.push_back(val);
 	}
 
-	for (size_t i = 0; i < excess; ++i) {
+	for (size_t i = 0; i < size_t(excess); ++i) {
 	    builder.push_back(0); // close all parentheses
 	}
     }

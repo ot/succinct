@@ -63,14 +63,14 @@ namespace mapper {
 	
             template <typename T>
             typename boost::disable_if<boost::is_pod<T>, freeze_visitor&>::type
-            operator()(T& val, const char* friendly_name) {
+            operator()(T& val, const char* /* friendly_name */) {
                 val.map(*this);
                 return *this;
             }
 
             template <typename T>
             typename boost::enable_if<boost::is_pod<T>, freeze_visitor&>::type
-            operator()(T& val, const char* friendly_name) {
+            operator()(T& val, const char* /* friendly_name */) {
                 m_fout.write(reinterpret_cast<const char*>(&val), sizeof(T));
                 m_written += sizeof(T);
                 return *this;
@@ -78,7 +78,7 @@ namespace mapper {
 
             template<typename T>
             freeze_visitor&
-            operator()(mappable_vector<T>& vec, const char* friendly_name) {
+            operator()(mappable_vector<T>& vec, const char* /* friendly_name */) {
                 (*this)(vec.m_size, "size");
 
                 size_t n_bytes = static_cast<size_t>(vec.m_size * sizeof(T));
@@ -111,14 +111,14 @@ namespace mapper {
 	
             template <typename T>
             typename boost::disable_if<boost::is_pod<T>, map_visitor&>::type
-            operator()(T& val, const char* friendly_name) {
+            operator()(T& val, const char* /* friendly_name */) {
                 val.map(*this);
                 return *this;
             }
 
             template <typename T>
             typename boost::enable_if<boost::is_pod<T>, map_visitor&>::type
-            operator()(T& val, const char* friendly_name) {
+            operator()(T& val, const char* /* friendly_name */) {
                 val = *reinterpret_cast<const T*>(m_cur);
                 m_cur += sizeof(T);
                 return *this;
@@ -126,7 +126,7 @@ namespace mapper {
 
             template<typename T>
             map_visitor&
-            operator()(mappable_vector<T>& vec, const char* friendly_name) {
+            operator()(mappable_vector<T>& vec, const char* /* friendly_name */) {
                 vec.clear();
                 (*this)(vec.m_size, "size");
 
@@ -187,7 +187,7 @@ namespace mapper {
 
             template <typename T>
             typename boost::enable_if<boost::is_pod<T>, sizeof_visitor&>::type
-            operator()(T& val, const char* friendly_name) {
+            operator()(T& /* val */, const char* /* friendly_name */) {
                 // don't track PODs in the size tree (they are constant sized)
                 m_size += sizeof(T);
                 return *this;

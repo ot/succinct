@@ -16,8 +16,8 @@
 struct monotone_generator
 {
     monotone_generator(uint64_t m, uint8_t bits, uint64_t seed)
-	: m_bits(bits)
-	, m_gen(seed)
+	: m_gen(seed)
+        , m_bits(bits)
     {
 	m_stack.push_back(state_t(0, m, 0));
     }
@@ -95,12 +95,18 @@ void ef_enumeration_benchmark(uint64_t m, uint8_t bits)
 	}
     }
     volatile uint64_t vfoo = foo;
+    (void)vfoo; // silence warning
+
     std::cerr << "Elapsed: " << elapsed / 1000 << " msec\n"
 	      << m / elapsed << " Mcodes/s" << std::endl;
 }
 
 int main(int argc, char** argv)
 {
+    if (argc != 3) {
+        std::cerr << "Invalid arguments" << std::endl;
+        std::terminate();
+    }
     size_t m = boost::lexical_cast<uint64_t>(argv[1]);
     uint8_t bits = uint8_t(boost::lexical_cast<int>(argv[2]));
         

@@ -315,8 +315,8 @@ namespace succinct {
             enumerator(bit_vector const& bv, size_t pos)
                 : m_bv(&bv)
                 , m_pos(pos)
-                , m_avail(0)
                 , m_buf(0)
+                , m_avail(0)
             {
                 m_bv->data().prefetch(m_pos / 64);
             }

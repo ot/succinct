@@ -82,7 +82,7 @@ namespace intrinsics {
 #else /* SUCCINCT_USE_INTRINSICS */
 
     template <typename T>
-    inline void prefetch(T const* ptr)
+    inline void prefetch(T const* /* ptr */)
     {
 	/* do nothing */
     }

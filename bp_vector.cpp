@@ -305,14 +305,14 @@ namespace succinct {
     }
 
     inline bool bp_vector::in_node_range(uint64_t node, excess_t excess) const {
-        assert(m_superblock_excess_min[node] != size());
+        assert(m_superblock_excess_min[node] != excess_t(size()));
         return excess >= m_superblock_excess_min[node];
     }
 
     template <int direction>
     inline uint64_t bp_vector::search_min_tree(uint64_t block, excess_t excess) const 
     {
-	size_t found_block;
+	size_t found_block = -1;
 	if (search_block_in_superblock<direction>(block, excess, found_block)) {
 		return found_block;
 	}
@@ -685,7 +685,7 @@ namespace succinct {
 		 ++block) {
                 cur_super_min = std::min(cur_super_min, superblock_excess + block_excess_min[block]);
             }
-            assert(cur_super_min >= 0 && cur_super_min < size());
+            assert(cur_super_min >= 0 && cur_super_min < excess_t(size()));
              
             superblock_excess_min[m_internal_nodes + superblock] = cur_super_min;
         }

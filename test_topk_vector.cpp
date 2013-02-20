@@ -28,7 +28,7 @@ struct value_index_comparator {
 };
 
 template <typename TopKVector>
-void test_topk(std::vector<value_type> const& v, TopKVector const& topkv, std::string test_name)
+void test_topk(std::vector<value_type> const& v, TopKVector const& topkv, std::string /* test_name */)
 {
     BOOST_REQUIRE_EQUAL(v.size(), topkv.size());
 

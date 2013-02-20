@@ -48,7 +48,7 @@ namespace succinct {
         {
             size_t pos = m_high_bits.select(idx);
             size_t l; // ignored
-            return retrieve_value(idx, pos, l);
+            return retrieve_value(pos, l);
         }
         
         size_t size() const
@@ -72,7 +72,7 @@ namespace succinct {
 
     private:
 
-        value_type retrieve_value(size_t idx, size_t pos, size_t& l) const
+        value_type retrieve_value(size_t pos, size_t& l) const
         {
 	    assert(m_high_bits.bits()[pos] == 1);
 	    l = broadword::lsb(m_high_bits.bits().get_word(pos + 1));

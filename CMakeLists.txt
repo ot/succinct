@@ -27,6 +27,12 @@ if (SUCCINCT_USE_POPCNT)
   endif ()
   # XXX(ot): what to do for MSVC?
 endif ()
+
+# 
+# XXX(ot): enable this on all compilers
+if (UNIX)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-braces")
+endif ()
     
 
 find_package(Boost 1.42.0 COMPONENTS 
