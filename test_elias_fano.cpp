@@ -50,8 +50,8 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         succinct::elias_fano bitmap(&bvb);
         test_equal_bits(v, bitmap, "Only one value");
         test_rank_select1(v, bitmap, "Only one value");
-	test_delta(bitmap, "Only one value");
-	test_select_enumeration(v, bitmap, "Only one value");
+        test_delta(bitmap, "Only one value");
+        test_select_enumeration(v, bitmap, "Only one value");
         BOOST_REQUIRE_EQUAL(1U, bitmap.num_ones());
     }
 
@@ -69,4 +69,3 @@ BOOST_AUTO_TEST_CASE(elias_fano)
         test_select_enumeration(v, bitmap, "Full bitmap");
     }
 }
-

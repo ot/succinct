@@ -7,7 +7,7 @@
 #include <vector>
 #include <stack>
 
-#define MY_REQUIRE_EQUAL(A, B, MSG) \
+#define MY_REQUIRE_EQUAL(A, B, MSG)                                     \
     BOOST_REQUIRE_MESSAGE((A) == (B), BOOST_PP_STRINGIZE(A) << " == " << BOOST_PP_STRINGIZE(B) << " [" << A  << " != " << B << "] " << MSG)
 
 inline std::vector<bool> random_bit_vector(size_t n = 10000, double density = 0.5)
@@ -18,5 +18,3 @@ inline std::vector<bool> random_bit_vector(size_t n = 10000, double density = 0.
     }
     return v;
 }
-
-

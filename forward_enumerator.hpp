@@ -16,7 +16,7 @@ namespace succinct {
         {
             return (*m_c)[m_idx++];
         }
-        
+
     private:
         Container const* m_c;
         size_t m_idx;

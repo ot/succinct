@@ -5,7 +5,7 @@
 
 #include "mapper.hpp"
 
-BOOST_AUTO_TEST_CASE(basic_map) 
+BOOST_AUTO_TEST_CASE(basic_map)
 {
     succinct::mapper::mappable_vector<int> vec;
     BOOST_REQUIRE_EQUAL(vec.size(), 0U);
@@ -41,7 +41,7 @@ public:
         uint32_t b[] = {1, 2};
         m_b.assign(b);
     }
-    
+
     template <typename Visitor>
     void map(Visitor& visit) {
         visit
@@ -49,11 +49,11 @@ public:
             (m_b, "m_b")
             ;
     }
-    
+
     uint64_t m_a;
     succinct::mapper::mappable_vector<uint32_t> m_b;
 };
-  
+
 BOOST_AUTO_TEST_CASE(complex_struct_map)
 {
     complex_struct s;
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(complex_struct_map)
     succinct::mapper::freeze(s, "temp.bin");
 
     BOOST_REQUIRE_EQUAL(24, succinct::mapper::size_of(s));
-    
+
     complex_struct mapped_s;
     BOOST_REQUIRE_EQUAL(0, mapped_s.m_a);
     BOOST_REQUIRE_EQUAL(0U, mapped_s.m_b.size());

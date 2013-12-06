@@ -10,8 +10,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 
-namespace succinct {
-namespace util {
+namespace succinct { namespace util {
 
     inline void trim_newline_chars(std::string& s)
     {
@@ -57,18 +56,18 @@ namespace util {
     {
     public:
         line_iterator()
-            : m_file(0) 
+            : m_file(0)
         {}
-    
+
         explicit line_iterator(FILE* input, bool trim_newline = false)
-            : m_file(input) 
+            : m_file(input)
             , m_trim_newline(trim_newline)
         {}
 
     private:
         friend class boost::iterator_core_access;
 
-        void increment() { 
+        void increment() {
             assert(m_file);
             if (!fast_getline(m_line, m_file, m_trim_newline)) {
                 m_file = 0;
@@ -106,7 +105,7 @@ namespace util {
                 msg += name;
                 msg += "'.";
                 throw std::invalid_argument(msg);
-                
+
             }
         }
 
@@ -116,7 +115,7 @@ namespace util {
                 fclose(m_file);
             }
         }
-        
+
         FILE* get()
         {
             return m_file;
@@ -129,28 +128,28 @@ namespace util {
 
         FILE * m_file;
     };
-    
+
     typedef std::pair<const uint8_t*, const uint8_t*> char_range;
-    
+
     struct identity_adaptor
     {
-	char_range operator()(char_range s) const 
-	{ 
+        char_range operator()(char_range s) const
+        {
             return s;
-	}
+        }
     };
 
     struct stl_string_adaptor
     {
-	char_range operator()(std::string const& s) const 
-	{ 
-	    const uint8_t* buf = reinterpret_cast<const uint8_t*>(s.c_str());
-	    const uint8_t* end = buf + s.size() + 1; // add the null terminator
-	    return char_range(buf, end);
-	}
+        char_range operator()(std::string const& s) const
+        {
+            const uint8_t* buf = reinterpret_cast<const uint8_t*>(s.c_str());
+            const uint8_t* end = buf + s.size() + 1; // add the null terminator
+            return char_range(buf, end);
+        }
     };
 
-    class buffer_line_iterator 
+    class buffer_line_iterator
         : public boost::iterator_facade<buffer_line_iterator
                                         , std::string const
                                         , boost::forward_traversal_tag
@@ -174,7 +173,7 @@ namespace util {
     private:
         friend class boost::iterator_core_access;
 
-        void increment() { 
+        void increment() {
             assert(m_cur_pos);
             if (m_cur_pos >= m_end) {
                 m_cur_pos = 0;
@@ -186,7 +185,7 @@ namespace util {
             }
             const char* end = m_cur_pos;
             ++m_cur_pos; // skip the newline
-            
+
             if (begin != end && *(end - 1) == '\r') {
                 --end;
             }
@@ -197,10 +196,10 @@ namespace util {
         {
             return m_cur_pos == other.m_cur_pos;        }
 
-        std::string const& dereference() const 
-        { 
+        std::string const& dereference() const
+        {
             assert(m_cur_pos);
-            return m_cur_value; 
+            return m_cur_value;
         }
 
         const char* m_buffer;
@@ -213,7 +212,7 @@ namespace util {
     {
         typedef buffer_line_iterator iterator;
         typedef buffer_line_iterator const_iterator;
-        
+
         mmap_lines(std::string filename)
             : m_map(filename)
         {}
@@ -222,14 +221,14 @@ namespace util {
         {
             return const_iterator(m_map.data(), m_map.size());
         }
-        
+
         const_iterator end() const
         {
             return const_iterator();
         }
-        
+
     private:
-        boost::iostreams::mapped_file_source m_map;        
+        boost::iostreams::mapped_file_source m_map;
     };
 
     struct input_error : std::invalid_argument
@@ -262,13 +261,13 @@ namespace util {
             return int64_t(n / 2);
         }
     }
-    
+
     template <typename IntType1, typename IntType2>
     inline IntType1 ceil_div(IntType1 dividend, IntType2 divisor)
     {
-	// XXX(ot): put some static check that IntType1 >= IntType2
-	IntType1 d = IntType1(divisor);
-	return IntType1(dividend + d - 1) / d;
+        // XXX(ot): put some static check that IntType1 >= IntType2
+        IntType1 d = IntType1(divisor);
+        return IntType1(dividend + d - 1) / d;
     }
-}
-}
+
+}}

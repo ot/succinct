@@ -13,9 +13,8 @@
 
 #include "intrinsics.hpp"
 
-namespace succinct {
-namespace mapper {
-    
+namespace succinct { namespace mapper {
+
     namespace detail {
         class freeze_visitor;
         class map_visitor;
@@ -23,22 +22,22 @@ namespace mapper {
     }
 
     typedef boost::function<void()> deleter_t;
-    
+
     template <typename T> // T must be a POD
     class mappable_vector : boost::noncopyable {
     public:
         typedef T value_type;
         typedef const T* iterator;
         typedef const T* const_iterator;
-	
+
         mappable_vector()
             : m_data(0)
             , m_size(0)
             , m_deleter()
         {}
-	
+
         template <typename Range>
-        mappable_vector(Range const& from) 
+        mappable_vector(Range const& from)
             : m_data(0)
             , m_size(0)
         {
@@ -52,20 +51,20 @@ namespace mapper {
             m_data = data;
             m_size = size;
         }
-	
+
         ~mappable_vector() {
             if (m_deleter) {
                 m_deleter();
             }
         }
-	
+
         void swap(mappable_vector& other) {
             using std::swap;
             swap(m_data, other.m_data);
             swap(m_size, other.m_size);
             swap(m_deleter, other.m_deleter);
         }
-	
+
         void clear() {
             mappable_vector().swap(*this);
         }
@@ -80,17 +79,17 @@ namespace mapper {
                 m_data = &(*new_vec)[0];
             }
         }
-	
+
         template <typename Range>
         void assign(Range const& from) {
             clear();
             mappable_vector(from).swap(*this);
         }
-	
+
         uint64_t size() const {
             return m_size;
         }
-	
+
         inline const_iterator begin() const {
             return m_data;
         }
@@ -98,7 +97,7 @@ namespace mapper {
         inline const_iterator end() const {
             return m_data + m_size;
         }
-	
+
         inline T const& operator[](uint64_t i) const {
             assert(i < m_size);
             return m_data[i];
@@ -121,6 +120,5 @@ namespace mapper {
         uint64_t m_size;
         deleter_t m_deleter;
     };
-    
-}
-}
+
+}}

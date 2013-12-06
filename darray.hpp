@@ -3,7 +3,7 @@
 #include "bit_vector.hpp"
 
 namespace succinct {
-    
+
     namespace detail {
 
         template <typename WordGetter>
@@ -48,7 +48,7 @@ namespace succinct {
                 if (cur_block_positions.size()) {
                     flush_cur_block(cur_block_positions, block_inventory, subblock_inventory, overflow_positions);
                 }
-                
+
                 m_block_inventory.steal(block_inventory);
                 m_subblock_inventory.steal(subblock_inventory);
                 m_overflow_positions.steal(overflow_positions);
@@ -63,29 +63,29 @@ namespace succinct {
                     (m_overflow_positions, "m_overflow_positions")
                     ;
             }
-	
+
             void swap(darray& other) {
                 std::swap(other.m_positions, m_positions);
                 m_block_inventory.swap(other.m_block_inventory);
                 m_subblock_inventory.swap(other.m_subblock_inventory);
                 m_overflow_positions.swap(other.m_overflow_positions);
             }
-	
-            inline uint64_t select(bit_vector const& bv, uint64_t idx) const 
+
+            inline uint64_t select(bit_vector const& bv, uint64_t idx) const
             {
                 assert(idx < num_positions());
                 uint64_t block = idx / block_size;
                 int64_t block_pos = m_block_inventory[block];
                 if (block_pos < 0) {
-		    uint64_t overflow_pos = uint64_t(-block_pos - 1);
+                    uint64_t overflow_pos = uint64_t(-block_pos - 1);
                     return m_overflow_positions[overflow_pos + (idx % block_size)];
-                } 
-                
+                }
+
                 size_t subblock = idx / subblock_size;
                 size_t start_pos = uint64_t(block_pos) + m_subblock_inventory[subblock];
                 size_t reminder = idx % subblock_size;
                 mapper::mappable_vector<uint64_t> const& data = bv.data();
-                
+
                 if (!reminder) {
                     return start_pos;
                 } else {
@@ -99,11 +99,11 @@ namespace succinct {
                         reminder -= popcnt;
                         word = WordGetter()(data, ++word_idx);
                     }
-	    
+
                     return 64 * word_idx + broadword::select_in_word(word, reminder);
                 }
             }
-            
+
             inline uint64_t num_positions() const {
                 return m_positions;
             }
@@ -135,7 +135,7 @@ namespace succinct {
             static const size_t block_size = 1024;
             static const size_t subblock_size = 32;
             static const size_t max_in_block_distance = 1 << 16;
-            
+
             size_t m_positions;
             mapper::mappable_vector<int64_t> m_block_inventory;
             mapper::mappable_vector<uint16_t> m_subblock_inventory;
@@ -156,8 +156,7 @@ namespace succinct {
             }
         };
     }
-    
+
     typedef detail::darray<detail::identity_getter> darray1;
     typedef detail::darray<detail::negating_getter> darray0;
 }
-

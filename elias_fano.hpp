@@ -12,7 +12,7 @@ namespace succinct {
         {}
 
         struct elias_fano_builder {
-            elias_fano_builder(uint64_t n, uint64_t m) 
+            elias_fano_builder(uint64_t n, uint64_t m)
                 : m_n(n)
                 , m_m(m)
                 , m_pos(0)
@@ -23,7 +23,7 @@ namespace succinct {
                 assert(m_l < 64); // for the correctness of low_mask
                 m_low_bits.reserve(m * m_l);
             }
-            
+
             inline void push_back(uint64_t i) {
                 assert(i >= m_last && i <= m_n);
                 m_last = i;
@@ -53,30 +53,30 @@ namespace succinct {
         {
             bit_vector_builder::bits_type& bits = bvb->move_bits();
             uint64_t n = bvb->size();
-            
+
             uint64_t m = 0;
             for (size_t i = 0; i < bits.size(); ++i) {
                 m += broadword::popcount(bits[i]);
             }
-            
+
             bit_vector bv(bvb);
             elias_fano_builder builder(n, m);
-            
+
             uint64_t i = 0;
             for (uint64_t pos = 0; pos < m; ++pos) {
                 i = bv.successor1(i);
-                builder.push_back(i);                
+                builder.push_back(i);
                 ++i;
             }
 
             build(builder, with_rank_index);
         }
-        
+
         elias_fano(elias_fano_builder* builder, bool with_rank_index = true)
         {
             build(*builder, with_rank_index);
         }
-        
+
         template <typename Visitor>
         void map(Visitor& visit) {
             visit
@@ -88,7 +88,7 @@ namespace succinct {
                 (m_l, "m_l")
                 ;
         }
-	
+
         void swap(elias_fano& other) {
             std::swap(other.m_size, m_size);
             other.m_high_bits.swap(m_high_bits);
@@ -97,7 +97,7 @@ namespace succinct {
             other.m_low_bits.swap(m_low_bits);
             std::swap(other.m_l, m_l);
         }
-	
+
         inline uint64_t size() const {
             return m_size;
         }
@@ -113,7 +113,7 @@ namespace succinct {
             uint64_t h_pos = m_high_bits_d0.select(m_high_bits, h_rank);
             uint64_t rank = h_pos - h_rank;
             uint64_t l_pos = pos & ((1ULL << m_l) - 1);
-            
+
             while (h_pos > 0
                    && m_high_bits[h_pos - 1]) {
                 --rank;
@@ -146,7 +146,7 @@ namespace succinct {
             uint64_t h_pos = m_high_bits_d0.select(m_high_bits, h_rank);
             uint64_t rank = h_pos - h_rank;
             uint64_t l_pos = pos & ((1ULL << m_l) - 1);
-            
+
             while (h_pos > 0
                    && m_high_bits[h_pos - 1]
                    && m_low_bits.get_bits((rank - 1) * m_l, m_l) >= l_pos) {
@@ -158,98 +158,98 @@ namespace succinct {
         }
 
         inline uint64_t predecessor1(uint64_t pos) const {
-	    return select(rank(pos + 1) - 1);
+            return select(rank(pos + 1) - 1);
         }
 
         inline uint64_t successor1(uint64_t pos) const {
             return select(rank(pos));
         }
 
-	
-	// Equivalent to select(n) - select(n - 1) (and select(0) for n = 0)
-	// Involves a linear search for predecessor in high bits. 
-	// Efficient only if there are no large gaps in high bits
-	// XXX(ot): could make this adaptive
-	inline uint64_t delta(uint64_t n) const {
-	    uint64_t high_val = m_high_bits_d1.select(m_high_bits, n);
-	    uint64_t low_val = m_low_bits.get_bits(n * m_l, m_l);
-	    if (n) {
-		return 
-		    // need a + here instead of an | for carry
-		    ((high_val - m_high_bits.predecessor1(high_val - 1) - 1) << m_l) 
-		    + low_val - m_low_bits.get_bits((n - 1) * m_l, m_l);
-	    } else {
-		return 
-		    ((high_val - n) << m_l)
-		    | low_val;
-	    }
-	}
 
-        
+        // Equivalent to select(n) - select(n - 1) (and select(0) for n = 0)
+        // Involves a linear search for predecessor in high bits.
+        // Efficient only if there are no large gaps in high bits
+        // XXX(ot): could make this adaptive
+        inline uint64_t delta(uint64_t n) const {
+            uint64_t high_val = m_high_bits_d1.select(m_high_bits, n);
+            uint64_t low_val = m_low_bits.get_bits(n * m_l, m_l);
+            if (n) {
+                return
+                    // need a + here instead of an | for carry
+                    ((high_val - m_high_bits.predecessor1(high_val - 1) - 1) << m_l)
+                    + low_val - m_low_bits.get_bits((n - 1) * m_l, m_l);
+            } else {
+                return
+                    ((high_val - n) << m_l)
+                    | low_val;
+            }
+        }
+
+
         // same as delta()
         inline std::pair<uint64_t, uint64_t> select_range(uint64_t n) const
         {
             assert(n + 1 < num_ones());
-	    uint64_t high_val_b = m_high_bits_d1.select(m_high_bits, n);
-	    uint64_t low_val_b = m_low_bits.get_bits(n * m_l, m_l);
+            uint64_t high_val_b = m_high_bits_d1.select(m_high_bits, n);
+            uint64_t low_val_b = m_low_bits.get_bits(n * m_l, m_l);
             uint64_t high_val_e = m_high_bits.successor1(high_val_b + 1);
             uint64_t low_val_e = m_low_bits.get_bits((n + 1) * m_l, m_l);
             return std::make_pair(((high_val_b - n) << m_l) | low_val_b,
                                   ((high_val_e - n - 1) << m_l) | low_val_e);
         }
-	
-	struct select_enumerator {
 
-	    select_enumerator(elias_fano const& ef, uint64_t i)
-		: m_ef(&ef)
-		, m_i(i)
-		, m_l(ef.m_l)
-	    {
-		m_low_mask = (uint64_t(1) << m_l) - 1;
-		m_low_buf = 0;
-		if (m_l) {
-		    m_chunks_in_word = 64 / m_l;
-		    m_chunks_avail = 0;
-		} else { 
-		    m_chunks_in_word = 0;
-		    m_chunks_avail = m_ef->num_ones();
-		}
+        struct select_enumerator {
 
-		if (!m_ef->num_ones()) return;
-		uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
-		m_high_enum =  bit_vector::unary_enumerator(m_ef->m_high_bits, pos);
-		assert(m_l < 64);
-	    }
+            select_enumerator(elias_fano const& ef, uint64_t i)
+                : m_ef(&ef)
+                , m_i(i)
+                , m_l(ef.m_l)
+            {
+                m_low_mask = (uint64_t(1) << m_l) - 1;
+                m_low_buf = 0;
+                if (m_l) {
+                    m_chunks_in_word = 64 / m_l;
+                    m_chunks_avail = 0;
+                } else {
+                    m_chunks_in_word = 0;
+                    m_chunks_avail = m_ef->num_ones();
+                }
 
-	    uint64_t next() {
-		if (!m_chunks_avail--) {
-		    m_low_buf = m_ef->m_low_bits.get_word(m_i * m_l);
-		    m_chunks_avail = m_chunks_in_word - 1;
-		}
+                if (!m_ef->num_ones()) return;
+                uint64_t pos = m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i);
+                m_high_enum =  bit_vector::unary_enumerator(m_ef->m_high_bits, pos);
+                assert(m_l < 64);
+            }
+
+            uint64_t next() {
+                if (!m_chunks_avail--) {
+                    m_low_buf = m_ef->m_low_bits.get_word(m_i * m_l);
+                    m_chunks_avail = m_chunks_in_word - 1;
+                }
 
                 uint64_t high = m_high_enum.next();
                 assert(high == m_ef->m_high_bits_d1.select(m_ef->m_high_bits, m_i));
-		uint64_t low = m_low_buf & m_low_mask;
-		uint64_t ret = 
-		    ((high - m_i) << m_l)
-		    | low;
-		m_i += 1;
-		m_low_buf >>= m_l;
-		
-		return ret;
-	    }
-	    
-	private:
-	    
-	    elias_fano const* m_ef;
-	    uint64_t m_i;
-	    uint64_t m_l;
+                uint64_t low = m_low_buf & m_low_mask;
+                uint64_t ret =
+                    ((high - m_i) << m_l)
+                    | low;
+                m_i += 1;
+                m_low_buf >>= m_l;
+
+                return ret;
+            }
+
+        private:
+
+            elias_fano const* m_ef;
+            uint64_t m_i;
+            uint64_t m_l;
             bit_vector::unary_enumerator m_high_enum;
-	    uint64_t m_low_buf;
-	    uint64_t m_low_mask;
-	    uint64_t m_chunks_in_word;
-	    uint64_t m_chunks_avail;
-	};
+            uint64_t m_low_buf;
+            uint64_t m_low_mask;
+            uint64_t m_chunks_in_word;
+            uint64_t m_chunks_avail;
+        };
 
     protected:
         void build(elias_fano_builder& builder, bool with_rank_index) {
@@ -272,4 +272,3 @@ namespace succinct {
     };
 
 }
-

@@ -19,9 +19,9 @@ BOOST_AUTO_TEST_CASE(elias_fano_compressed_list)
             v.push_back(size_t(rand()));
         }
     }
-    
+
     succinct::elias_fano_compressed_list vv(v);
-    
+
     BOOST_REQUIRE_EQUAL(v.size(), vv.size());
     for (size_t i = 0; i < v.size(); ++i) {
         MY_REQUIRE_EQUAL(v[i], vv[i], "i = " << i);

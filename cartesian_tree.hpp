@@ -29,77 +29,77 @@ namespace succinct {
     //   array can be traversed left-to-right. This involves
     //   re-mapping all the indices at query time. Since the array is
     //   reversed, in ties the leftmost element wins
-    //     
+    //
     // - Our data structures have 0-based indices, so the operations
     //   are slightly different from those in the paper
 
     class cartesian_tree : boost::noncopyable {
     public:
 
-	template <typename T>
-	class builder {
-	public:
-	    builder(uint64_t expected_size = 0)
-	    {
-		if (expected_size) {
-		    m_bp.reserve(2 * expected_size + 2);
-		}
-	    }
-	    
-	    template <typename Comparator>
-	    void push_back(T const& val, Comparator const& comp)
-	    {
-		m_bp.push_back(0);
-                
-                while (!m_stack.empty() 
-		       && comp(val, m_stack.back())) { // val < m_stack.back() 
-                    m_stack.pop_back();
-		    m_bp.push_back(1);
+        template <typename T>
+        class builder {
+        public:
+            builder(uint64_t expected_size = 0)
+            {
+                if (expected_size) {
+                    m_bp.reserve(2 * expected_size + 2);
                 }
-                
-                m_stack.push_back(val);
-	    }
-	    
-	    bit_vector_builder& finalize()
-	    {
-		// super-root
-		m_bp.push_back(0);
-		while (!m_stack.empty()) {
-		    m_stack.pop_back();
-		    m_bp.push_back(1);
-		}
-		m_bp.push_back(1);
-		
-		m_bp.reverse();
-		return m_bp;
-	    }
+            }
 
-	    friend class cartesian_tree;
-	private:
-	    std::vector<T> m_stack;
-	    bit_vector_builder m_bp;
-	};
+            template <typename Comparator>
+            void push_back(T const& val, Comparator const& comp)
+            {
+                m_bp.push_back(0);
+
+                while (!m_stack.empty()
+                       && comp(val, m_stack.back())) { // val < m_stack.back()
+                    m_stack.pop_back();
+                    m_bp.push_back(1);
+                }
+
+                m_stack.push_back(val);
+            }
+
+            bit_vector_builder& finalize()
+            {
+                // super-root
+                m_bp.push_back(0);
+                while (!m_stack.empty()) {
+                    m_stack.pop_back();
+                    m_bp.push_back(1);
+                }
+                m_bp.push_back(1);
+
+                m_bp.reverse();
+                return m_bp;
+            }
+
+            friend class cartesian_tree;
+        private:
+            std::vector<T> m_stack;
+            bit_vector_builder m_bp;
+        };
 
         cartesian_tree() {}
-	
-	template <typename T>
-	cartesian_tree(builder<T>* b)
-	{
-	    bp_vector(&b->finalize(), false, true).swap(m_bp);
-	}
-        
+
+        template <typename T>
+        cartesian_tree(builder<T>* b)
+        {
+            bp_vector(&b->finalize(), false, true).swap(m_bp);
+        }
+
         template <typename Range>
         cartesian_tree(Range const& v)
         {
-	    build_from_range(v, std::less<typename boost::range_value<Range>::type>());
+            build_from_range(v, std::less<typename boost::range_value<Range>::type>());
         }
 
         template <typename Range, typename Comparator>
         cartesian_tree(Range const& v, Comparator const& comp)
         {
-	    build_from_range(v, comp);
+            build_from_range(v, comp);
         }
-        
+
         // NOTE: this is RMQ in the interval [a, b], b inclusive
         // XXX(ot): maybe change this to [a, b), for consistency with
         // the rest of the library?
@@ -107,10 +107,10 @@ namespace succinct {
         {
             typedef bp_vector::excess_t excess_t;
 
-	    assert(a <= b);
+            assert(a <= b);
             if (a == b) return a;
-         
-	    uint64_t n = size();
+
+            uint64_t n = size();
 
             uint64_t t = m_bp.select0(n - b - 1);
             excess_t exc_t = excess_t(t - 2 * (n - b - 1));
@@ -136,44 +136,44 @@ namespace succinct {
             return ret;
         }
 
-	bp_vector const& get_bp() const
-	{
-	    return m_bp;
-	}
+        bp_vector const& get_bp() const
+        {
+            return m_bp;
+        }
 
-	uint64_t size() const
-	{
-	    return m_bp.size() / 2 - 1;
-	}
-	
+        uint64_t size() const
+        {
+            return m_bp.size() / 2 - 1;
+        }
+
         template <typename Visitor>
-        void map(Visitor& visit) 
+        void map(Visitor& visit)
         {
             visit
                 (m_bp, "m_bp");
         }
-	
-        void swap(cartesian_tree& other) 
+
+        void swap(cartesian_tree& other)
         {
             other.m_bp.swap(m_bp);
         }
-        
+
     protected:
-	
+
         template <typename Range, typename Comparator>
-	void build_from_range(Range const& v, Comparator const& comp)
-	{
-            typedef typename 
+        void build_from_range(Range const& v, Comparator const& comp)
+        {
+            typedef typename
                 boost::range_value<Range>::type value_type;
             typedef typename
                 boost::range_iterator<const Range>::type iter_type;
 
-	    builder<value_type> b;
+            builder<value_type> b;
             for (iter_type it = boost::begin(v); it != boost::end(v); ++it) {
                 b.push_back(*it, comp);
             }
             cartesian_tree(&b).swap(*this);
-	}
+        }
 
 
         bp_vector m_bp;

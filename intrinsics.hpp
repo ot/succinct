@@ -25,11 +25,11 @@
 
 
 
-namespace succinct {
-namespace intrinsics {
+namespace succinct { namespace intrinsics {
+
 
 #if SUCCINCT_USE_INTRINSICS
-    
+
     __INTRIN_INLINE uint64_t byteswap64(uint64_t value)
     {
 #if defined(__GNUC__) || defined(__clang__)
@@ -44,12 +44,12 @@ namespace intrinsics {
     __INTRIN_INLINE bool bsf64(unsigned long* const index, const uint64_t mask)
     {
 #if defined(__GNUC__) || defined(__clang__)
-	if (mask) {
-	    __asm__("bsf %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
-	    return true;
-	} else {
-	    return false;
-	}
+        if (mask) {
+            __asm__("bsf %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
+            return true;
+        } else {
+            return false;
+        }
 #elif defined(_MSC_VER)
         return _BitScanForward64(index, mask) != 0;
 #else
@@ -60,12 +60,12 @@ namespace intrinsics {
     __INTRIN_INLINE bool bsr64(unsigned long* const index, const uint64_t mask)
     {
 #if defined(__GNUC__) || defined(__clang__)
-	if (mask) {
-	    __asm__("bsr %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
-	    return true;
-	} else {
-	    return false;
-	}
+        if (mask) {
+            __asm__("bsr %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
+            return true;
+        } else {
+            return false;
+        }
 #elif defined(_MSC_VER)
         return _BitScanReverse64(index, mask) != 0;
 #else
@@ -78,25 +78,24 @@ namespace intrinsics {
     {
         _mm_prefetch((const char*)ptr, _MM_HINT_T0);
     }
-    
+
 #else /* SUCCINCT_USE_INTRINSICS */
 
     template <typename T>
     inline void prefetch(T const* /* ptr */)
     {
-	/* do nothing */
+        /* do nothing */
     }
 
 #endif /* SUCCINCT_USE_INTRINSICS */
 
 #if SUCCINCT_USE_POPCNT
 
-    __INTRIN_INLINE uint64_t popcount(uint64_t x) 
+    __INTRIN_INLINE uint64_t popcount(uint64_t x)
     {
-	return _mm_popcnt_u64(x);
+        return _mm_popcnt_u64(x);
     }
 
 #endif /* SUCCINCT_USE_POPCNT */
-}
-}
 
+}}

@@ -7,10 +7,10 @@
 #include "succinct/mappable_vector.hpp"
 
 namespace succinct {
-    
+
     class nibble_vector {
     public:
-        nibble_vector() 
+        nibble_vector()
             : m_size(0)
         {}
 
@@ -38,19 +38,19 @@ namespace succinct {
             }
             m_nibbles.steal(nibbles);
         }
-	
+
         template <typename Visitor>
         void map(Visitor& visit) {
             visit
                 (m_size, "m_size")
                 (m_nibbles, "m_nibbles");
         }
-	
+
         void swap(nibble_vector& other) {
             std::swap(other.m_size, m_size);
             other.m_nibbles.swap(m_nibbles);
         }
-	
+
         size_t size() const {
             return m_size;
         }
@@ -64,5 +64,5 @@ namespace succinct {
         size_t m_size;
         mapper::mappable_vector<uint8_t> m_nibbles;
     };
-    
+
 }

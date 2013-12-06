@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include "intrinsics.hpp"
 
-namespace succinct {
-namespace broadword {
+namespace succinct { namespace broadword {
 
     static const uint64_t ones_step_4  = 0x1111111111111111ULL;
     static const uint64_t ones_step_8  = 0x0101010101010101ULL;
@@ -35,13 +34,13 @@ namespace broadword {
     {
         return ((x | ((x | msbs_step_8) - ones_step_8)) & msbs_step_8) >> 7;
     }
-    
-    inline uint64_t uleq_step_9(uint64_t x, uint64_t y) 
+
+    inline uint64_t uleq_step_9(uint64_t x, uint64_t y)
     {
         return (((((y | msbs_step_9) - (x & ~msbs_step_9)) | (x ^ y)) ^ (x & ~y)) & msbs_step_9 ) >> 8;
     }
 
-    inline uint64_t byte_counts(uint64_t x) 
+    inline uint64_t byte_counts(uint64_t x)
     {
         x = x - ((x & 0xa * ones_step_4) >> 1);
         x = (x & 3 * ones_step_4) + ((x >> 2) & 3 * ones_step_4);
@@ -54,16 +53,16 @@ namespace broadword {
         return x * ones_step_8 >> 56;
     }
 
-    inline uint64_t popcount(uint64_t x) 
+    inline uint64_t popcount(uint64_t x)
     {
 #if SUCCINCT_USE_POPCNT
-	return intrinsics::popcount(x);
+        return intrinsics::popcount(x);
 #else
         return bytes_sum(byte_counts(x));
 #endif
     }
-        
-    inline uint64_t reverse_bytes(uint64_t x) 
+
+    inline uint64_t reverse_bytes(uint64_t x)
     {
 #if SUCCINCT_USE_INTRINSICS
         return intrinsics::byteswap64(x);
@@ -77,13 +76,13 @@ namespace broadword {
 
     inline uint64_t reverse_bits(uint64_t x)
     {
-	x = ((x >> 1) & magic_mask_1) | ((x & magic_mask_1) << 1);
-	x = ((x >> 2) & magic_mask_2) | ((x & magic_mask_2) << 2);
-	x = ((x >> 4) & magic_mask_3) | ((x & magic_mask_3) << 4);
-	return reverse_bytes(x);
+        x = ((x >> 1) & magic_mask_1) | ((x & magic_mask_1) << 1);
+        x = ((x >> 2) & magic_mask_2) | ((x & magic_mask_2) << 2);
+        x = ((x >> 4) & magic_mask_3) | ((x & magic_mask_3) << 4);
+        return reverse_bytes(x);
     }
 
-    inline uint64_t select_in_word(const uint64_t x, const uint64_t k) 
+    inline uint64_t select_in_word(const uint64_t x, const uint64_t k)
     {
         assert(k < popcount(x));
 
@@ -100,7 +99,7 @@ namespace broadword {
 
         return place + (leq_step_8(bit_sums, byte_rank_step_8) * ones_step_8 >> 56);
     }
-    
+
     inline uint64_t same_msb(uint64_t x, uint64_t y)
     {
         return (x ^ y) <= (x & y);
@@ -118,18 +117,18 @@ namespace broadword {
             56, 45, 25, 31, 35, 16,  9, 12,
             44, 24, 15,  8, 23,  7,  6,  5
         };
-	static const uint64_t debruijn64 = 0x07EDD5E59A4E28C2ULL;
+        static const uint64_t debruijn64 = 0x07EDD5E59A4E28C2ULL;
     }
 
     // return the position of the single bit set in the word x
     inline uint8_t bit_position(uint64_t x)
     {
-	assert(popcount(x) == 1);
-	return detail::debruijn64_mapping
-	    [(x * detail::debruijn64) >> 58];
+        assert(popcount(x) == 1);
+        return detail::debruijn64_mapping
+            [(x * detail::debruijn64) >> 58];
     }
- 
-    inline uint8_t msb(uint64_t x, unsigned long& ret) 
+
+    inline uint8_t msb(uint64_t x, unsigned long& ret)
     {
 #if SUCCINCT_USE_INTRINSICS
         return intrinsics::bsr64(&ret, x);
@@ -137,24 +136,24 @@ namespace broadword {
         if (!x) {
             return false;
         }
-	
-	// right-saturate the word
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16;
-	x |= x >> 32;
 
-	// isolate the MSB
-	x ^= x >> 1;
+        // right-saturate the word
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        x |= x >> 32;
+
+        // isolate the MSB
+        x ^= x >> 1;
         ret = bit_position(x);
-	
+
         return true;
 #endif
     }
 
-    inline uint8_t msb(uint64_t x) 
+    inline uint8_t msb(uint64_t x)
     {
         assert(x);
         unsigned long ret = -1U;
@@ -162,7 +161,7 @@ namespace broadword {
         return (uint8_t)ret;
     }
 
-    inline uint8_t lsb(uint64_t x, unsigned long& ret) 
+    inline uint8_t lsb(uint64_t x, unsigned long& ret)
     {
 #if SUCCINCT_USE_INTRINSICS
         return intrinsics::bsf64(&ret, x);
@@ -175,12 +174,12 @@ namespace broadword {
 #endif
     }
 
-    inline uint8_t lsb(uint64_t x) 
+    inline uint8_t lsb(uint64_t x)
     {
         assert(x);
         unsigned long ret = -1U;
         lsb(x, ret);
         return (uint8_t)ret;
     }
-}
-}
+
+}}

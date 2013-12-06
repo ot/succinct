@@ -16,15 +16,15 @@ BOOST_AUTO_TEST_CASE(rs_bit_vector)
     std::vector<bool> v;
     succinct::rs_bit_vector bitmap;
 
-    succinct::rs_bit_vector(v).swap(bitmap); 
+    succinct::rs_bit_vector(v).swap(bitmap);
     BOOST_REQUIRE_EQUAL(v.size(), bitmap.size());
-    succinct::rs_bit_vector(v, true).swap(bitmap); 
+    succinct::rs_bit_vector(v, true).swap(bitmap);
     BOOST_REQUIRE_EQUAL(v.size(), bitmap.size());
 
     // random vector
     v = random_bit_vector();
-    
-    succinct::rs_bit_vector(v).swap(bitmap); 
+
+    succinct::rs_bit_vector(v).swap(bitmap);
     BOOST_REQUIRE_EQUAL(v.size(), bitmap.size());
     test_equal_bits(v, bitmap, "RS - Uniform bits");
     test_rank_select(v, bitmap, "Uniform bits");
@@ -57,4 +57,3 @@ BOOST_AUTO_TEST_CASE(rs_bit_vector)
     succinct::rs_bit_vector(v, true).swap(bitmap);
     test_rank_select(v, bitmap, "Corner cases - with hints");
 }
-

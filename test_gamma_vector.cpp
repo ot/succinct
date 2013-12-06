@@ -19,9 +19,9 @@ BOOST_AUTO_TEST_CASE(gamma_vector)
             v.push_back(uint64_t(rand()));
         }
     }
-    
+
     succinct::gamma_vector vv(v);
-    
+
     BOOST_REQUIRE_EQUAL(v.size(), vv.size());
     for (size_t i = 0; i < v.size(); ++i) {
         MY_REQUIRE_EQUAL(v[i], vv[i], "i = " << i);
@@ -42,12 +42,12 @@ BOOST_AUTO_TEST_CASE(gamma_enumerator)
             v.push_back(uint64_t(rand()));
         }
     }
-    
+
     succinct::gamma_vector vv(v);
 
     size_t i = 0;
     size_t pos = 0;
-    
+
     succinct::forward_enumerator<succinct::gamma_vector> e(vv, pos);
     while (pos < vv.size()) {
         uint64_t next = e.next();

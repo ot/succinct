@@ -7,22 +7,22 @@
 #include "broadword.hpp"
 
 namespace succinct {
-    
+
     class rs_bit_vector : public bit_vector {
     public:
-        rs_bit_vector() 
+        rs_bit_vector()
             : bit_vector()
         {}
 
         template <class Range>
-        rs_bit_vector(Range const& from, 
-		      bool with_select_hints = false,
-		      bool with_select0_hints = false)
+        rs_bit_vector(Range const& from,
+                      bool with_select_hints = false,
+                      bool with_select0_hints = false)
             : bit_vector(from)
         {
             build_indices(with_select_hints, with_select0_hints);
         }
-	
+
         template <typename Visitor>
         void map(Visitor& visit) {
             bit_vector::map(visit);
@@ -32,14 +32,14 @@ namespace succinct {
                 (m_select0_hints, "m_select0_hints")
                 ;
         }
-	
+
         void swap(rs_bit_vector& other) {
             bit_vector::swap(other);
             m_block_rank_pairs.swap(other.m_block_rank_pairs);
             m_select_hints.swap(other.m_select_hints);
             m_select0_hints.swap(other.m_select0_hints);
         }
-	    
+
         inline uint64_t num_ones() const {
             return *(m_block_rank_pairs.end() - 2);
         }
@@ -47,7 +47,7 @@ namespace succinct {
         inline uint64_t num_zeros() const {
             return size() - num_ones();
         }
-        
+
         inline uint64_t rank(uint64_t pos) const {
             assert(pos <= size());
             if (pos == size()) {
@@ -62,7 +62,7 @@ namespace succinct {
             }
             return r;
         }
-        
+
         inline uint64_t rank0(uint64_t pos) const {
             return pos - rank(pos);
         }
@@ -98,13 +98,13 @@ namespace succinct {
             uint64_t cur_rank = block_rank(block);
             assert(cur_rank <= n);
 
-            
+
             uint64_t rank_in_block_parallel = (n - cur_rank) * broadword::ones_step_9;
             uint64_t sub_ranks = sub_block_ranks(block);
             uint64_t sub_block_offset = broadword::uleq_step_9(sub_ranks, rank_in_block_parallel) * broadword::ones_step_9 >> 54 & 0x7;
             cur_rank += sub_ranks >> (7 - sub_block_offset) * 9 & 0x1FF;
             assert(cur_rank <= n);
-            
+
             uint64_t word_offset = block_offset + sub_block_offset;
             return word_offset * 64 + select_in_word(m_bits[word_offset], n - cur_rank);
         }
@@ -146,7 +146,7 @@ namespace succinct {
             uint64_t sub_block_offset = broadword::uleq_step_9(sub_ranks, rank_in_block_parallel) * broadword::ones_step_9 >> 54 & 0x7;
             cur_rank0 += sub_ranks >> (7 - sub_block_offset) * 9 & 0x1FF;
             assert(cur_rank0 <= n);
-            
+
             uint64_t word_offset = block_offset + sub_block_offset;
             return word_offset * 64 + select_in_word(~m_bits[word_offset], n - cur_rank0);
         }
@@ -178,7 +178,7 @@ namespace succinct {
             return block * block_size * 64 - m_block_rank_pairs[block * 2];
         }
 
-	void build_indices(bool with_select_hints, bool with_select0_hints);
+        void build_indices(bool with_select_hints, bool with_select0_hints);
 
         static const uint64_t block_size = 8; // in 64bit words
         static const uint64_t select_ones_per_hint = 64 * block_size * 2; // must be > block_size * 64

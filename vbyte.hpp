@@ -10,7 +10,7 @@ namespace succinct {
         if (!broadword::msb(val, bits)) bits = 0;
         return util::ceil_div(bits + 1, 7);
     }
-    
+
     template <typename Vector>
     inline size_t append_vbyte(Vector& v, size_t val)
     {
@@ -39,4 +39,3 @@ namespace succinct {
     }
 
 }
-

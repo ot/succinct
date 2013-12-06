@@ -11,8 +11,7 @@
 
 #include "mappable_vector.hpp"
 
-namespace succinct {
-namespace mapper {
+namespace succinct { namespace mapper {
 
     struct freeze_flags {
         // enum {
@@ -21,7 +20,7 @@ namespace mapper {
 
     struct map_flags {
         enum {
-            warmup = 1 
+            warmup = 1
         };
     };
 
@@ -51,7 +50,7 @@ namespace mapper {
     namespace detail {
         class freeze_visitor : boost::noncopyable {
         public:
-            freeze_visitor(std::ofstream& fout, uint64_t flags) 
+            freeze_visitor(std::ofstream& fout, uint64_t flags)
                 : m_fout(fout)
                 , m_flags(flags)
                 , m_written(0)
@@ -60,7 +59,7 @@ namespace mapper {
                 m_fout.write(reinterpret_cast<const char*>(&m_flags), sizeof(m_flags));
                 m_written += sizeof(m_flags);
             }
-	
+
             template <typename T>
             typename boost::disable_if<boost::is_pod<T>, freeze_visitor&>::type
             operator()(T& val, const char* /* friendly_name */) {
@@ -88,9 +87,9 @@ namespace mapper {
                 return *this;
             }
 
-	    size_t written() const {
-		return m_written;
-	    }
+            size_t written() const {
+                return m_written;
+            }
 
         protected:
             std::ofstream& m_fout;
@@ -100,7 +99,7 @@ namespace mapper {
 
         class map_visitor : boost::noncopyable {
         public:
-            map_visitor(const char* base_address, uint64_t flags) 
+            map_visitor(const char* base_address, uint64_t flags)
                 : m_base(base_address)
                 , m_cur(m_base)
                 , m_flags(flags)
@@ -108,7 +107,7 @@ namespace mapper {
                 m_freeze_flags = *reinterpret_cast<const uint64_t*>(m_cur);
                 m_cur += sizeof(m_freeze_flags);
             }
-	
+
             template <typename T>
             typename boost::disable_if<boost::is_pod<T>, map_visitor&>::type
             operator()(T& val, const char* /* friendly_name */) {
@@ -145,9 +144,9 @@ namespace mapper {
                 return *this;
             }
 
-	    size_t bytes_read() const {
-		return size_t(m_cur - m_base);
-	    }
+            size_t bytes_read() const {
+                return size_t(m_cur - m_base);
+            }
 
         protected:
             const char* m_base;
@@ -165,7 +164,7 @@ namespace mapper {
                     m_cur_size_node = boost::make_shared<size_node>();
                 }
             }
-	
+
             template <typename T>
             typename boost::disable_if<boost::is_pod<T>, sizeof_visitor&>::type
             operator()(T& val, const char* friendly_name) {
@@ -175,9 +174,9 @@ namespace mapper {
                     parent_node = m_cur_size_node;
                     m_cur_size_node = make_node(friendly_name);
                 }
-                
+
                 val.map(*this);
-                
+
                 if (m_cur_size_node) {
                     m_cur_size_node->size = m_size - checkpoint;
                     m_cur_size_node = parent_node;
@@ -237,14 +236,14 @@ namespace mapper {
     {
         detail::freeze_visitor freezer(fout, flags);
         freezer(val, friendly_name);
-	return freezer.written();
+        return freezer.written();
     }
 
     template <typename T>
     size_t freeze(T& val, const char* filename, uint64_t flags = 0, const char* friendly_name = "<TOP>")
     {
         std::ofstream fout(filename, std::ios::binary);
-	return freeze(val, fout, flags, friendly_name);
+        return freeze(val, fout, flags, friendly_name);
     }
 
     template <typename T>
@@ -252,13 +251,13 @@ namespace mapper {
     {
         detail::map_visitor mapper(base_address, flags);
         mapper(val, friendly_name);
-	return mapper.bytes_read();
+        return mapper.bytes_read();
     }
 
     template <typename T>
     size_t map(T& val, boost::iostreams::mapped_file_source const& m, uint64_t flags = 0, const char* friendly_name = "<TOP>")
     {
-	return map(val, m.data(), flags, friendly_name);
+        return map(val, m.data(), flags, friendly_name);
     }
 
     template <typename T>
@@ -277,5 +276,5 @@ namespace mapper {
         assert(sizer.size_tree()->children.size());
         return sizer.size_tree()->children[0];
     }
-}
-}
+
+}}

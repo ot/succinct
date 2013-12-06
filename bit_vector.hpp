@@ -23,7 +23,7 @@ namespace succinct {
     public:
 
         typedef std::vector<uint64_t> bits_type;
-        
+
         bit_vector_builder(uint64_t size = 0, bool init = 0)
             : m_size(size)
         {
@@ -36,11 +36,11 @@ namespace succinct {
                 }
             }
         }
-        
+
         void reserve(uint64_t size) {
             m_bits.reserve(detail::words_for(size));
         }
-        
+
         inline void push_back(bool b) {
             uint64_t pos_in_word = m_size % 64;
             if (pos_in_word == 0) {
@@ -61,8 +61,8 @@ namespace succinct {
         }
 
         inline void append_bits(uint64_t bits, size_t len) {
-	    assert(len == 64 || (bits >> len) == 0); // check there are no spurious bits
-	    if (!len) return;
+            assert(len == 64 || (bits >> len) == 0); // check there are no spurious bits
+            if (!len) return;
             uint64_t pos_in_word = m_size % 64;
             m_size += len;
             if (pos_in_word == 0) {
@@ -85,7 +85,7 @@ namespace succinct {
             }
         }
 
-        inline void one_extend(uint64_t n) 
+        inline void one_extend(uint64_t n)
         {
             while (n >= 64) {
                 append_bits(uint64_t(-1), 64);
@@ -95,7 +95,7 @@ namespace succinct {
                 append_bits(uint64_t(-1) >> (64 - n), n);
             }
         }
-        
+
         void append(bit_vector_builder const& rhs)
         {
             uint64_t remaining = rhs.size();
@@ -109,31 +109,31 @@ namespace succinct {
             }
         }
 
-	// reverse in place
-	void reverse()
-	{
-	    uint64_t shift = 64 - (size() % 64);
-	    
-	    uint64_t remainder = 0;
-	    for (size_t i = 0; i < m_bits.size(); ++i) {
-		uint64_t cur_word;
-		if (shift != 64) { // this should be hoisted out
-		    cur_word = remainder | (m_bits[i] << shift);
-		    remainder = m_bits[i] >> (64 - shift);
-		} else {
-		    cur_word = m_bits[i];
-		}
-		m_bits[i] = broadword::reverse_bits(cur_word);
-	    }
-	    assert(remainder == 0);
-	    std::reverse(m_bits.begin(), m_bits.end());
-	}
+        // reverse in place
+        void reverse()
+        {
+            uint64_t shift = 64 - (size() % 64);
+
+            uint64_t remainder = 0;
+            for (size_t i = 0; i < m_bits.size(); ++i) {
+                uint64_t cur_word;
+                if (shift != 64) { // this should be hoisted out
+                    cur_word = remainder | (m_bits[i] << shift);
+                    remainder = m_bits[i] >> (64 - shift);
+                } else {
+                    cur_word = m_bits[i];
+                }
+                m_bits[i] = broadword::reverse_bits(cur_word);
+            }
+            assert(remainder == 0);
+            std::reverse(m_bits.begin(), m_bits.end());
+        }
 
         bits_type& move_bits() {
             assert(detail::words_for(m_size) == m_bits.size());
             return m_bits;
         }
-        
+
         uint64_t size() const {
             return m_size;
         }
@@ -143,17 +143,17 @@ namespace succinct {
             m_bits.swap(other.m_bits);
             std::swap(m_size, other.m_size);
             std::swap(m_cur_word, other.m_cur_word);
-        }            
+        }
 
     private:
         bits_type m_bits;
         uint64_t m_size;
         uint64_t* m_cur_word;
     };
-    
+
     class bit_vector {
     public:
-        bit_vector() 
+        bit_vector()
             : m_size(0)
         {}
 
@@ -188,19 +188,19 @@ namespace succinct {
             m_size = from->size();
             m_bits.steal(from->move_bits());
         }
-	
+
         template <typename Visitor>
         void map(Visitor& visit) {
             visit
                 (m_size, "m_size")
                 (m_bits, "m_bits");
         }
-	
+
         void swap(bit_vector& other) {
             std::swap(other.m_size, m_size);
             other.m_bits.swap(m_bits);
         }
-	
+
         inline size_t size() const {
             return m_size;
         }
@@ -228,18 +228,18 @@ namespace succinct {
             }
         }
 
-	// same as get_bits(pos, 64) but it can extend further size(), padding with zeros
-	inline uint64_t get_word(uint64_t pos) const
-	{
-	    assert(pos < size());
+        // same as get_bits(pos, 64) but it can extend further size(), padding with zeros
+        inline uint64_t get_word(uint64_t pos) const
+        {
+            assert(pos < size());
             uint64_t block = pos / 64;
             uint64_t shift = pos % 64;
-	    uint64_t word = m_bits[block] >> shift;
-	    if (shift && block + 1 < m_bits.size()) {
-		word |= m_bits[block + 1] << (64 - shift);
-	    }
-	    return word;
-	}
+            uint64_t word = m_bits[block] >> shift;
+            if (shift && block + 1 < m_bits.size()) {
+                word |= m_bits[block + 1] << (64 - shift);
+            }
+            return word;
+        }
 
         inline uint64_t predecessor0(uint64_t pos) const {
             assert(pos < m_size);
@@ -301,17 +301,17 @@ namespace succinct {
             return block * 64 + ret;
         }
 
-	mapper::mappable_vector<uint64_t> const& data() const 
-	{
-	    return m_bits;
-	}
+        mapper::mappable_vector<uint64_t> const& data() const
+        {
+            return m_bits;
+        }
 
         struct enumerator {
             enumerator()
                 : m_bv(0)
                 , m_pos(uint64_t(-1))
             {}
-            
+
             enumerator(bit_vector const& bv, size_t pos)
                 : m_bv(&bv)
                 , m_pos(pos)
@@ -356,7 +356,7 @@ namespace succinct {
                     m_avail = 0;
                     fill_buf();
                 }
-                
+
                 uint64_t l = broadword::lsb(m_buf);
                 m_buf >>= l;
                 m_buf >>= 1;
@@ -364,11 +364,11 @@ namespace succinct {
                 m_pos += l + 1;
                 return zs + l;
             }
-            
-	    inline uint64_t position() const
-	    {
-		return m_pos;
-	    }
+
+            inline uint64_t position() const
+            {
+                return m_pos;
+            }
 
         private:
 
@@ -400,16 +400,16 @@ namespace succinct {
                 uint64_t pos_in_word = pos % 64;
                 m_buf &= uint64_t(-1) << pos_in_word;
             }
-		
+
             uint64_t next()
             {
                 unsigned long pos_in_word;
                 while (!broadword::lsb(m_buf, pos_in_word)) {
                     m_buf = m_data[++m_word_idx];
                 }
-		    
+
                 m_buf &= m_buf - 1; // clear LSB
-                return m_word_idx * 64 + pos_in_word;		    
+                return m_word_idx * 64 + pos_in_word;
             }
 
         private:
@@ -422,5 +422,5 @@ namespace succinct {
         size_t m_size;
         mapper::mappable_vector<uint64_t> m_bits;
     };
-   
+
 }
