@@ -15,8 +15,8 @@ double time_avg_rmq(succinct::cartesian_tree const& tree, size_t sample_size = 1
     typedef std::pair<uint64_t, uint64_t> range_pair;
     std::vector<range_pair> pairs_sample;
     for (size_t i = 0; i < sample_size; ++i) {
-        uint64_t a = rand() % tree.size();
-        uint64_t b = a + (rand() % (tree.size() - a));
+        uint64_t a = uint64_t(rand()) % tree.size();
+        uint64_t b = a + (uint64_t(rand()) % (tree.size() - a));
         pairs_sample.push_back(range_pair(a, b));
     }
     
@@ -50,7 +50,7 @@ void rmq_benchmark(size_t runs)
 	for (size_t run = 0; run < runs; ++run) {
 	    std::vector<uint64_t> v(n);
             for (size_t i = 0; i < v.size(); ++i) {
-                v[i] = rand() % 1024;
+                v[i] = uint64_t(rand()) % 1024;
             }
 
             succinct::cartesian_tree tree(v);

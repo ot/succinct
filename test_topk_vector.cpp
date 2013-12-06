@@ -10,7 +10,7 @@
 #include "topk_vector.hpp"
 #include "elias_fano_compressed_list.hpp"
 
-typedef int64_t value_type;
+typedef uint64_t value_type;
 
 // XXX test (de)serialization
 
@@ -39,8 +39,8 @@ void test_topk(std::vector<value_type> const& v, TopKVector const& topkv, std::s
     typedef std::pair<uint64_t, uint64_t> range_pair;
     std::vector<range_pair> pairs_sample;
     for (size_t i = 0; i < sample_size; ++i) {
-        uint64_t a = rand() % v.size();
-        uint64_t b = a + (rand() % (v.size() - a));
+        uint64_t a = size_t(rand()) % v.size();
+        uint64_t b = a + (size_t(rand()) % (v.size() - a));
         pairs_sample.push_back(range_pair(a, b));
     }
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(topk_vector)
         for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
             std::vector<value_type> v(sizes[i]);
             for (size_t i = 0; i < v.size(); ++i) {
-                v[i] = rand() % 1024;
+                v[i] = size_t(rand()) % 1024;
             }
         
             topk_type t(v);

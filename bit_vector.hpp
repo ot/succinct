@@ -309,7 +309,7 @@ namespace succinct {
         struct enumerator {
             enumerator()
                 : m_bv(0)
-                , m_pos(-1)
+                , m_pos(uint64_t(-1))
             {}
             
             enumerator(bit_vector const& bv, size_t pos)

@@ -82,7 +82,7 @@ namespace mapper {
                 (*this)(vec.m_size, "size");
 
                 size_t n_bytes = static_cast<size_t>(vec.m_size * sizeof(T));
-                m_fout.write(reinterpret_cast<const char*>(vec.m_data), n_bytes);
+                m_fout.write(reinterpret_cast<const char*>(vec.m_data), long(n_bytes));
                 m_written += n_bytes;
 
                 return *this;

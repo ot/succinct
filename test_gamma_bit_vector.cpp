@@ -12,7 +12,7 @@ std_vector_type random_vector(size_t test_size)
     std_vector_type v;
 
     for (size_t i = 0; i < test_size; ++i) {
-	bool b = rand() & 1;
+	bool b = uint64_t(rand()) & 1;
         if (rand() < (RAND_MAX / 3)) {
             v.push_back(b);
         } else {
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(gamma_bit_enumerator)
         MY_REQUIRE_EQUAL(next, v[pos], "pos = " << pos << " i = " << i);
         pos += 1;
 
-        size_t step = rand() % (vv.size() - pos + 1);
+        size_t step = uint64_t(rand()) % (vv.size() - pos + 1);
         pos += step;
         e = succinct::forward_enumerator<succinct::gamma_bit_vector>(vv, pos);
         i += 1;

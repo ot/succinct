@@ -7,7 +7,7 @@
 #include "mapper.hpp"
 #include "cartesian_tree.hpp"
 
-typedef int64_t value_type;
+typedef uint64_t value_type;
 
 // XXX test (de)serialization
 
@@ -24,11 +24,11 @@ void test_rmq(std::vector<value_type> const& v, succinct::cartesian_tree const& 
     tests.push_back(0);
     tests.push_back(1);
     // This is the global minimum of the vector
-    tests.push_back(std::min_element(v.begin(), v.end(), comp) - v.begin());
+    tests.push_back(uint64_t(std::min_element(v.begin(), v.end(), comp) - v.begin()));
     
     // Plus some random...
     for (size_t t = 0; t < 10; ++t) {
-        tests.push_back(rand() % v.size());
+        tests.push_back(size_t(rand()) % v.size());
     }
     
     for(size_t t = 0; t < tests.size(); ++t) {
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(cartesian_tree)
         for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
             std::vector<value_type> v(sizes[i]);
             for (size_t i = 0; i < v.size(); ++i) {
-                v[i] = rand() % 1024;
+                v[i] = size_t(rand()) % 1024;
             }
         
             succinct::cartesian_tree t(v);

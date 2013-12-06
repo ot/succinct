@@ -75,10 +75,10 @@ namespace succinct {
         inline bool find_close_in_word(uint64_t word, uint64_t byte_counts, bp_vector::excess_t cur_exc, uint64_t& ret) 
         {
             assert(cur_exc > 0 && cur_exc <= 64);
-            const uint64_t cum_exc_step_8 = (cur_exc + ((2 * byte_counts - 8 * broadword::ones_step_8) << 8)) * broadword::ones_step_8;
+            const uint64_t cum_exc_step_8 = (uint64_t(cur_exc) + ((2 * byte_counts - 8 * broadword::ones_step_8) << 8)) * broadword::ones_step_8;
 	    
 	    uint64_t min_exc_step_8 = 0;
-	    for (int i = 0; i < 8; ++i) {
+	    for (size_t i = 0; i < 8; ++i) {
 		size_t shift = i * 8;
 		min_exc_step_8 |= ((uint64_t)(tables.m_fwd_min[(word >> shift) & 0xFF])) << shift;
 	    }
@@ -98,10 +98,10 @@ namespace succinct {
         inline bool find_open_in_word(uint64_t word, uint64_t byte_counts, bp_vector::excess_t cur_exc, uint64_t& ret) {
             assert(cur_exc > 0 && cur_exc <= 64);
             const uint64_t rev_byte_counts = broadword::reverse_bytes(byte_counts);
-            const uint64_t cum_exc_step_8 = (cur_exc - ((2 * rev_byte_counts - 8 * broadword::ones_step_8) << 8)) * broadword::ones_step_8;
+            const uint64_t cum_exc_step_8 = (uint64_t(cur_exc) - ((2 * rev_byte_counts - 8 * broadword::ones_step_8) << 8)) * broadword::ones_step_8;
 
 	    uint64_t max_exc_step_8 = 0;
-	    for (int i = 0; i < 8; ++i) {
+	    for (size_t i = 0; i < 8; ++i) {
 		size_t shift = i * 8;
 		max_exc_step_8 |= ((uint64_t)(tables.m_bwd_min[(word >> (64 - shift - 8)) & 0xFF])) << shift;
 	    }
@@ -123,11 +123,11 @@ namespace succinct {
                            bp_vector::excess_t& min_exc, uint64_t& min_exc_idx)
         {
             bp_vector::excess_t min_byte_exc = min_exc;
-            int min_byte_idx = 0;
+            uint64_t min_byte_idx = 0;
 
-	    for (int i = 0; i < 8; ++i) {
-		int shift = i * 8;
-		int byte = (word >> shift) & 0xFF;
+	    for (size_t i = 0; i < 8; ++i) {
+		size_t shift = i * 8;
+		size_t byte = (word >> shift) & 0xFF;
                 // m_fwd_min is negated
                 bp_vector::excess_t cur_min = exc - tables.m_fwd_min[byte];
 
@@ -139,7 +139,7 @@ namespace succinct {
             
             if (min_byte_exc < min_exc) {
                 min_exc = min_byte_exc;
-                int shift = min_byte_idx * 8;
+                uint64_t shift = min_byte_idx * 8;
                 min_exc_idx = word_start + shift + tables.m_fwd_min_idx[(word >> shift) & 0xFF];
             }
         }
@@ -169,7 +169,7 @@ namespace succinct {
     uint64_t bp_vector::find_close(uint64_t pos) const
     {
         assert((*this)[pos]); // check there is an opening parenthesis in pos
-        uint64_t ret = -1;
+        uint64_t ret = -1U;
         // Search in current word
         uint64_t word_pos = (pos + 1) / 64;
         uint64_t shift = (pos + 1) % 64;
@@ -231,7 +231,7 @@ namespace succinct {
     uint64_t bp_vector::find_open(uint64_t pos) const
     {
         assert(pos);
-        uint64_t ret = -1;
+        uint64_t ret = -1U;
         // Search in current word
         uint64_t word_pos = (pos / 64);
         uint64_t len = pos % 64;
@@ -312,19 +312,18 @@ namespace succinct {
     template <int direction>
     inline uint64_t bp_vector::search_min_tree(uint64_t block, excess_t excess) const 
     {
-	size_t found_block = -1;
+	size_t found_block = -1U;
 	if (search_block_in_superblock<direction>(block, excess, found_block)) {
 		return found_block;
 	}
         
-        int direction_sign = 2 * direction - 1;
         size_t cur_superblock = block / superblock_size;
 	size_t cur_node = m_internal_nodes + cur_superblock;
         while (true) {
             assert(cur_node);
             bool going_back = (cur_node & 1) == direction;
             if (!going_back) {
-                size_t next_node = cur_node + direction_sign;
+                size_t next_node = direction ? (cur_node + 1) : (cur_node - 1);
                 if (in_node_range(next_node, excess)) {
                     cur_node = next_node;
                     break;
@@ -341,7 +340,8 @@ namespace succinct {
                 cur_node = next_node;
                 continue;
             }
-            next_node += direction_sign;
+
+	    next_node = direction ? (next_node + 1) : (next_node - 1);
             // if it is not one child, it must be the other
             assert(in_node_range(next_node, excess));
             cur_node = next_node;
@@ -557,7 +557,7 @@ namespace succinct {
 
             // search in blocks
             excess_t block_min_exc = min_exc;
-            uint64_t block_min_idx = -1;
+            uint64_t block_min_idx = -1U;
             
             uint64_t superblock_a = (block_a + 1) / superblock_size;
             uint64_t superblock_b = block_b / superblock_size;
@@ -575,7 +575,7 @@ namespace succinct {
 
                 // search min superblock in the min tree
                 excess_t superblock_min_exc = min_exc;
-                uint64_t superblock_min_idx = -1;
+                uint64_t superblock_min_idx = -1U;
                 find_min_superblock(superblock_a + 1, superblock_b,
                                     superblock_min_exc, superblock_min_idx);
                 

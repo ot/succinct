@@ -32,7 +32,7 @@ struct monotone_generator
 	m_stack.pop_back();
 	
 	while (cur_depth < m_bits) {
-	    boost::random::uniform_int_distribution<> dist(0, (int)cur_m);
+	    boost::random::uniform_int_distribution<uint64_t> dist(0, cur_m);
 	    uint64_t left_m = dist(m_gen);
 	    uint64_t right_m = cur_m - left_m;
 	    

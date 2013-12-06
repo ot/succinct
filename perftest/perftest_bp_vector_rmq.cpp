@@ -15,8 +15,8 @@ double time_avg_rmq(succinct::bp_vector const& bp, size_t sample_size = 1000000)
     typedef std::pair<uint64_t, uint64_t> range_pair;
     std::vector<range_pair> pairs_sample;
     for (size_t i = 0; i < sample_size; ++i) {
-        uint64_t a = rand() % bp.size();
-        uint64_t b = a + (rand() % (bp.size() - a));
+        uint64_t a = uint64_t(rand()) % bp.size();
+        uint64_t b = a + (uint64_t(rand()) % (bp.size() - a));
         pairs_sample.push_back(range_pair(a, b));
     }
     

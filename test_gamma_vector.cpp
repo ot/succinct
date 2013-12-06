@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(gamma_vector)
         if (rand() < (RAND_MAX / 3)) {
             v.push_back(0);
         } else {
-            v.push_back(rand());
+            v.push_back(uint64_t(rand()));
         }
     }
     
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(gamma_enumerator)
         if (rand() < (RAND_MAX / 3)) {
             v.push_back(0);
         } else {
-            v.push_back(rand());
+            v.push_back(uint64_t(rand()));
         }
     }
     
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(gamma_enumerator)
         MY_REQUIRE_EQUAL(next, v[pos], "pos = " << pos << " i = " << i);
         pos += 1;
 
-        size_t step = rand() % (vv.size() - pos + 1);
+        size_t step = uint64_t(rand()) % (vv.size() - pos + 1);
         pos += step;
         e = succinct::forward_enumerator<succinct::gamma_vector>(vv, pos);
         i += 1;

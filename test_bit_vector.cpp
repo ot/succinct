@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(bit_vector_enumerator)
         MY_REQUIRE_EQUAL(next, v[pos], "pos = " << pos << " i = " << i);
         pos += 1;
 
-        pos += rand() % (bitmap.size() - pos + 1);
+        pos += size_t(rand()) % (bitmap.size() - pos + 1);
         e = succinct::bit_vector::enumerator(bitmap, pos);
         i += 1;
     }

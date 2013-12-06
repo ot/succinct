@@ -74,14 +74,15 @@ namespace succinct {
             inline uint64_t select(bit_vector const& bv, uint64_t idx) const 
             {
                 assert(idx < num_positions());
-                int64_t block = idx / block_size;
+                uint64_t block = idx / block_size;
                 int64_t block_pos = m_block_inventory[block];
                 if (block_pos < 0) {
-                    return m_overflow_positions[(-block_pos - 1) + (idx % block_size)];
+		    uint64_t overflow_pos = uint64_t(-block_pos - 1);
+                    return m_overflow_positions[overflow_pos + (idx % block_size)];
                 } 
                 
                 size_t subblock = idx / subblock_size;
-                size_t start_pos = block_pos + m_subblock_inventory[subblock];
+                size_t start_pos = uint64_t(block_pos) + m_subblock_inventory[subblock];
                 size_t reminder = idx % subblock_size;
                 mapper::mappable_vector<uint64_t> const& data = bv.data();
                 
@@ -113,7 +114,7 @@ namespace succinct {
                                         std::vector<uint16_t>& subblock_inventory, std::vector<uint64_t>& overflow_positions)
             {
                 if (cur_block_positions.back() - cur_block_positions.front() < max_in_block_distance) {
-                    block_inventory.push_back(cur_block_positions.front());
+                    block_inventory.push_back(int64_t(cur_block_positions.front()));
                     for (size_t i = 0; i < cur_block_positions.size(); i += subblock_size) {
                         subblock_inventory.push_back(uint16_t(cur_block_positions[i] - cur_block_positions.front()));
                     }

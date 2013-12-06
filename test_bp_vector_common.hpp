@@ -13,7 +13,7 @@ namespace succinct {
 	    }   
 
 	    builder.push_back(1); 
-	    size_t left_subtree_size = 2 * (rand() % (size - 1) / 2) + 1;
+	    size_t left_subtree_size = 2 * (size_t(rand()) % (size - 1) / 2) + 1;
 	    assert(left_subtree_size >= 1);
 	    size_t right_subtree_size = size - 1 - left_subtree_size;
 	    assert(right_subtree_size >= 1);
@@ -39,7 +39,7 @@ namespace succinct {
     {
 	int excess = 0;
 	for (size_t i = 0; i < size_est; ++i) {
-	    bool val = rand() > RAND_MAX / 2;
+	    bool val = rand() > (RAND_MAX / 2);
 	    if (excess <= 1 && !val) {
 		val = 1;
 	    }

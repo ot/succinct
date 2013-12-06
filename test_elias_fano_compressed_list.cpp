@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(elias_fano_compressed_list)
         if (rand() < (RAND_MAX / 3)) {
             v.push_back(0);
         } else {
-            v.push_back(rand());
+            v.push_back(size_t(rand()));
         }
     }
     
