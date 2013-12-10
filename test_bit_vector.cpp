@@ -38,8 +38,8 @@ BOOST_AUTO_TEST_CASE(bit_vector)
         test_equal_bits(v, bitmap, "Random bits (set)");
     }
 
+    uint64_t ints[] = {uint64_t(-1), uint64_t(1) << 63, 1, 1, 1, 3, 5, 7, 0xFFF, 0xF0F, 1, 0xFFFFFF, 0x123456, uint64_t(1) << 63, uint64_t(-1)};
     {
-        uint64_t ints[] = {uint64_t(-1), uint64_t(1) << 63, 1, 1, 1, 3, 5, 7, 0xFFF, 0xF0F, 1, 0xFFFFFF, 0x123456, uint64_t(1) << 63, uint64_t(-1)};
         succinct::bit_vector_builder bvb;
         BOOST_FOREACH(uint64_t i, ints) {
             uint64_t len = succinct::broadword::msb(i) + 1;
@@ -51,6 +51,29 @@ BOOST_AUTO_TEST_CASE(bit_vector)
             uint64_t len = succinct::broadword::msb(i) + 1;
             BOOST_REQUIRE_EQUAL(i, bitmap.get_bits(pos, len));
             pos += len;
+        }
+    }
+
+    {
+        using succinct::broadword::msb;
+        std::vector<size_t> positions(1);
+        BOOST_FOREACH(uint64_t i, ints) {
+            positions.push_back(positions.back() + msb(i) + 1);
+        }
+
+        succinct::bit_vector_builder bvb(positions.back());
+
+        for (size_t i = 0; i < positions.size() - 1; ++i) {
+            uint64_t v = ints[i];
+            uint64_t len = positions[i + 1] - positions[i];
+            bvb.set_bits(positions[i], v, len);
+        }
+
+        succinct::bit_vector bitmap(&bvb);
+        for (size_t i = 0; i < positions.size() - 1; ++i) {
+            uint64_t v = ints[i];
+            uint64_t len = positions[i + 1] - positions[i];
+            BOOST_REQUIRE_EQUAL(v, bitmap.get_bits(positions[i], len));
         }
     }
 }

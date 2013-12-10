@@ -51,17 +51,38 @@ namespace succinct {
             ++m_size;
         }
 
-        inline void set(uint64_t i, bool b) {
-            uint64_t word = i / 64;
-            if (b) {
-                m_bits[word] |= 1ULL << (i % 64);
-            } else {
-                m_bits[word] &= ~(1ULL << (i % 64));
+        inline void set(uint64_t pos, bool b) {
+            uint64_t word = pos / 64;
+            uint64_t pos_in_word = pos % 64;
+
+            m_bits[word] &= ~(uint64_t(1) << pos_in_word);
+            m_bits[word] |= uint64_t(b) << pos_in_word;
+        }
+
+        inline void set_bits(uint64_t pos, uint64_t bits, size_t len)
+        {
+            assert(pos + len <= size());
+            // check there are no spurious bits
+            assert(len == 64 || (bits >> len) == 0);
+            if (!len) return;
+            uint64_t mask = (len == 64) ? uint64_t(-1) : ((uint64_t(1) << len) - 1);
+            uint64_t word = pos / 64;
+            uint64_t pos_in_word = pos % 64;
+
+            m_bits[word] &= ~(mask << pos_in_word);
+            m_bits[word] |= bits << pos_in_word;
+
+            uint64_t stored = 64 - pos_in_word;
+            if (stored < len) {
+                m_bits[word + 1] &= ~(mask >> stored);
+                m_bits[word + 1] |= bits >> stored;
             }
         }
 
-        inline void append_bits(uint64_t bits, size_t len) {
-            assert(len == 64 || (bits >> len) == 0); // check there are no spurious bits
+        inline void append_bits(uint64_t bits, size_t len)
+        {
+            // check there are no spurious bits
+            assert(len == 64 || (bits >> len) == 0);
             if (!len) return;
             uint64_t pos_in_word = m_size % 64;
             m_size += len;
