@@ -5,8 +5,8 @@ configure_file(
   ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp.in
   ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp)
 
-option(SUCCINCT_USE_LIBCXX 
-  "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost)" 
+option(SUCCINCT_USE_LIBCXX
+  "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost)"
   OFF)
 option(SUCCINCT_USE_INTRINSICS
   "Use a set of intrinsics available on all x86-64 architectures"
@@ -15,8 +15,8 @@ option(SUCCINCT_USE_POPCNT
   "Use popcount intrinsic. Available on x86-64 since SSE4.2."
   OFF)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")	
-   if (SUCCINCT_USE_LIBCXX) 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+   if (SUCCINCT_USE_LIBCXX)
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
    endif ()
 endif ()
@@ -28,15 +28,15 @@ if (SUCCINCT_USE_POPCNT)
   # XXX(ot): what to do for MSVC?
 endif ()
 
-# 
+
 # XXX(ot): enable this on all compilers
 if (UNIX)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-missing-braces")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
 endif ()
-    
 
-find_package(Boost 1.42.0 COMPONENTS 
+
+find_package(Boost 1.42.0 COMPONENTS
   unit_test_framework iostreams system filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories (${Boost_LIBRARY_DIRS})
@@ -66,6 +66,3 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_test(${TEST_SRC_NAME} ${TEST_SRC_NAME})
   endforeach(TEST_SRC)
 endif ()
-
-
-
