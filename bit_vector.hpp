@@ -433,6 +433,23 @@ namespace succinct {
                 return m_word_idx * 64 + pos_in_word;
             }
 
+            // this is equivalent to
+            // for (size_t i = 0; i < k; ++i) {
+            //     next();
+            // }
+            void skip(uint64_t k)
+            {
+                uint64_t skipped = 0;
+                uint64_t w = 0;
+                while (skipped + (w = broadword::popcount(m_buf)) <= k) {
+                    skipped += w;
+                    m_buf = m_data[++m_word_idx];
+                }
+                assert(m_buf);
+                uint64_t pos_in_word = broadword::select_in_word(m_buf, k - skipped);
+                m_buf &= uint64_t(-1) << pos_in_word;
+            }
+
         private:
             uint64_t const* m_data;
             uint64_t m_word_idx;

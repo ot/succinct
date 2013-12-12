@@ -99,6 +99,45 @@ BOOST_AUTO_TEST_CASE(bit_vector_enumerator)
     }
 }
 
+BOOST_AUTO_TEST_CASE(bit_vector_unary_enumerator)
+{
+    srand(42);
+    std::vector<bool> v = random_bit_vector();
+    succinct::bit_vector bitmap(v);
+
+    std::vector<size_t> ones;
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (bitmap[i]) {
+            ones.push_back(i);
+        }
+    }
+
+    {
+        succinct::bit_vector::unary_enumerator e(bitmap, 0);
+
+        for (size_t r = 0; r < ones.size(); ++r) {
+            uint64_t pos = e.next();
+            MY_REQUIRE_EQUAL(ones[r], pos,
+                             "r = " << r);
+        }
+    }
+
+    {
+        succinct::bit_vector::unary_enumerator e(bitmap, 0);
+
+        for (size_t r = 0; r < ones.size(); ++r) {
+            for (size_t k = 0; k < std::min(size_t(128), size_t(ones.size() - r)); ++k) {
+                succinct::bit_vector::unary_enumerator ee(e);
+                ee.skip(k);
+                uint64_t pos = ee.next();
+                MY_REQUIRE_EQUAL(ones[r + k], pos,
+                                 "r = " << r << " k = " << k);
+            }
+            e.next();
+        }
+    }
+}
+
 void test_bvb_reverse(size_t n)
 {
     std::vector<bool> v = random_bit_vector(n);
