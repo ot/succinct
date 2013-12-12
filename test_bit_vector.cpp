@@ -102,7 +102,15 @@ BOOST_AUTO_TEST_CASE(bit_vector_enumerator)
 BOOST_AUTO_TEST_CASE(bit_vector_unary_enumerator)
 {
     srand(42);
-    std::vector<bool> v = random_bit_vector();
+    uint64_t n = 20000;
+    std::vector<bool> v = random_bit_vector(n);
+
+    // punch some long gaps in v
+    for (size_t g = 0; g < n / 1000; ++g) {
+        ssize_t l = std::min(ssize_t(rand() % 256), ssize_t(v.size() - g));
+        std::fill(v.begin(), v.begin() + l, 0);
+    }
+
     succinct::bit_vector bitmap(v);
 
     std::vector<size_t> ones;
@@ -126,7 +134,7 @@ BOOST_AUTO_TEST_CASE(bit_vector_unary_enumerator)
         succinct::bit_vector::unary_enumerator e(bitmap, 0);
 
         for (size_t r = 0; r < ones.size(); ++r) {
-            for (size_t k = 0; k < std::min(size_t(128), size_t(ones.size() - r)); ++k) {
+            for (size_t k = 0; k < std::min(size_t(256), size_t(ones.size() - r)); ++k) {
                 succinct::bit_vector::unary_enumerator ee(e);
                 ee.skip(k);
                 uint64_t pos = ee.next();
@@ -134,6 +142,29 @@ BOOST_AUTO_TEST_CASE(bit_vector_unary_enumerator)
                                  "r = " << r << " k = " << k);
             }
             e.next();
+        }
+    }
+
+    {
+        succinct::bit_vector::unary_enumerator e(bitmap, 0);
+
+        for (size_t pos = 0; pos < v.size(); ++pos) {
+            uint64_t skip = 0;
+            for (size_t d = 0; d < std::min(size_t(256), size_t(v.size() - pos)); ++d) {
+                if (v[pos + d] == 0) {
+                    succinct::bit_vector::unary_enumerator ee(bitmap, pos);
+                    ee.skip0(skip);
+
+                    uint64_t expected_pos = pos + d;
+                    for (; !v[expected_pos] && expected_pos < v.size(); ++expected_pos);
+                    if (!v[expected_pos]) break;
+                    uint64_t pos = ee.next();
+                    MY_REQUIRE_EQUAL(expected_pos, pos,
+                                     "pos = " << pos << " skip = " << skip);
+
+                    skip += 1;
+                }
+            }
         }
     }
 }

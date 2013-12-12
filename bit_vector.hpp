@@ -409,6 +409,7 @@ namespace succinct {
             unary_enumerator()
                 : m_data(0)
                 , m_word_idx(0)
+                , m_pos_in_word(0)
                 , m_buf(0)
             {}
 
@@ -418,21 +419,21 @@ namespace succinct {
                 m_word_idx = pos / 64;
                 m_buf = m_data[m_word_idx];
                 // clear low bits
-                uint64_t pos_in_word = pos % 64;
-                m_buf &= uint64_t(-1) << pos_in_word;
+                m_pos_in_word = pos % 64;
+                m_buf &= uint64_t(-1) << m_pos_in_word;
             }
 
             uint64_t next()
             {
-                unsigned long pos_in_word;
-                while (!broadword::lsb(m_buf, pos_in_word)) {
+                while (!broadword::lsb(m_buf, m_pos_in_word)) {
                     m_buf = m_data[++m_word_idx];
                 }
 
                 m_buf &= m_buf - 1; // clear LSB
-                return m_word_idx * 64 + pos_in_word;
+                return m_word_idx * 64 + m_pos_in_word;
             }
 
+            // skip to the k-th one after the current position
             // this is equivalent to
             // for (size_t i = 0; i < k; ++i) {
             //     next();
@@ -446,13 +447,30 @@ namespace succinct {
                     m_buf = m_data[++m_word_idx];
                 }
                 assert(m_buf);
-                uint64_t pos_in_word = broadword::select_in_word(m_buf, k - skipped);
-                m_buf &= uint64_t(-1) << pos_in_word;
+                m_pos_in_word = broadword::select_in_word(m_buf, k - skipped);
+                m_buf &= uint64_t(-1) << m_pos_in_word;
+            }
+
+            // skip to the k-th zero after the current position
+            void skip0(uint64_t k)
+            {
+                uint64_t skipped = 0;
+                uint64_t buf = ~m_buf & (uint64_t(-1) << m_pos_in_word);
+                uint64_t w = 0;
+                while (skipped + (w = broadword::popcount(buf)) <= k) {
+                    skipped += w;
+                    m_buf = m_data[++m_word_idx];
+                    buf = ~m_buf;
+                }
+                assert(buf);
+                m_pos_in_word = broadword::select_in_word(buf, k - skipped);
+                m_buf &= uint64_t(-1) << m_pos_in_word;
             }
 
         private:
             uint64_t const* m_data;
             uint64_t m_word_idx;
+            unsigned long m_pos_in_word;
             uint64_t m_buf;
         };
 
