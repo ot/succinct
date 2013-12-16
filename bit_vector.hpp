@@ -262,6 +262,14 @@ namespace succinct {
             return word;
         }
 
+        // unsafe and fast version of get_word, it retrieves at least 56 bits
+        inline uint64_t get_word56(uint64_t pos) const
+        {
+            // XXX check endianness?
+            const char* ptr = reinterpret_cast<const char*>(m_bits.data());
+            return *(reinterpret_cast<uint64_t const*>(ptr + pos / 8)) >> (pos % 8);
+        }
+
         inline uint64_t predecessor0(uint64_t pos) const {
             assert(pos < m_size);
             uint64_t block = pos / 64;
