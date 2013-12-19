@@ -93,7 +93,7 @@ namespace succinct { namespace intrinsics {
 
     __INTRIN_INLINE uint64_t popcount(uint64_t x)
     {
-        return _mm_popcnt_u64(x);
+        return uint64_t(_mm_popcnt_u64(x));
     }
 
 #endif /* SUCCINCT_USE_POPCNT */

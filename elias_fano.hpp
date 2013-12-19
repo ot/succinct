@@ -34,7 +34,7 @@ namespace succinct {
                 }
                 m_high_bits.set((i >> m_l) + m_pos, 1);
                 ++m_pos;
-                assert(m_pos <= m_m);
+                assert(m_pos <= m_m); (void)m_m;
             }
 
             friend class elias_fano;
