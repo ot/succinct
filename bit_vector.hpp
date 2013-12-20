@@ -447,21 +447,18 @@ namespace succinct {
             }
 
             // skip to the k-th one after the current position
-            // this is equivalent to
-            // for (size_t i = 0; i < k; ++i) {
-            //     next();
-            // }
             void skip(uint64_t k)
             {
                 uint64_t skipped = 0;
+                uint64_t buf = m_buf;
                 uint64_t w = 0;
-                while (skipped + (w = broadword::popcount(m_buf)) <= k) {
+                while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    m_buf = m_data[++m_word_idx];
+                    buf = m_data[++m_word_idx];
                 }
-                assert(m_buf);
-                m_pos_in_word = broadword::select_in_word(m_buf, k - skipped);
-                m_buf &= uint64_t(-1) << m_pos_in_word;
+                assert(buf);
+                m_pos_in_word = broadword::select_in_word(buf, k - skipped);
+                m_buf = buf & (uint64_t(-1) << m_pos_in_word);
             }
 
             // skip to the k-th zero after the current position
@@ -472,12 +469,11 @@ namespace succinct {
                 uint64_t w = 0;
                 while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    m_buf = m_data[++m_word_idx];
-                    buf = ~m_buf;
+                    buf = ~m_data[++m_word_idx];
                 }
                 assert(buf);
                 m_pos_in_word = broadword::select_in_word(buf, k - skipped);
-                m_buf &= uint64_t(-1) << m_pos_in_word;
+                m_buf = ~buf & (uint64_t(-1) << m_pos_in_word);
             }
 
         private:
