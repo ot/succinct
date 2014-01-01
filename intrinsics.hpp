@@ -45,7 +45,7 @@ namespace succinct { namespace intrinsics {
     {
 #if defined(__GNUC__) || defined(__clang__)
         if (mask) {
-            __asm__("bsf %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
+            *index = (unsigned long)__builtin_ctzll(mask);
             return true;
         } else {
             return false;
@@ -61,7 +61,7 @@ namespace succinct { namespace intrinsics {
     {
 #if defined(__GNUC__) || defined(__clang__)
         if (mask) {
-            __asm__("bsr %[mask], %[index]" : [index] "=r" (*index) : [mask] "mr" (mask));
+            *index = (unsigned long)(63 - __builtin_clzll(mask));
             return true;
         } else {
             return false;

@@ -438,12 +438,15 @@ namespace succinct {
 
             uint64_t next()
             {
-                while (!broadword::lsb(m_buf, m_pos_in_word)) {
-                    m_buf = m_data[++m_word_idx];
+                uint64_t buf = m_buf;
+                while (!buf) {
+                    buf = m_data[++m_word_idx];
                 }
 
-                m_buf &= m_buf - 1; // clear LSB
-                return position();
+                unsigned long pos_in_word = broadword::lsb(buf);
+                m_buf = buf & (buf - 1); // clear LSB
+                m_pos_in_word = pos_in_word;
+                return m_word_idx * 64 + pos_in_word;
             }
 
             // skip to the k-th one after the current position
@@ -479,7 +482,7 @@ namespace succinct {
         private:
             uint64_t const* m_data;
             uint64_t m_word_idx;
-            unsigned long m_pos_in_word;
+            uint64_t m_pos_in_word;
             uint64_t m_buf;
         };
 
