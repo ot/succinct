@@ -416,7 +416,7 @@ namespace succinct {
         struct unary_enumerator {
             unary_enumerator()
                 : m_data(0)
-                , m_word_idx(0)
+                , m_word_pos(0)
                 , m_pos_in_word(0)
                 , m_buf(0)
             {}
@@ -424,8 +424,9 @@ namespace succinct {
             unary_enumerator(bit_vector const& bv, uint64_t pos)
             {
                 m_data = bv.data().data();
-                m_word_idx = pos / 64;
-                m_buf = m_data[m_word_idx];
+                uint64_t idx = pos / 64;
+                m_word_pos = idx * 64;;
+                m_buf = m_data[idx];
                 // clear low bits
                 m_pos_in_word = pos % 64;
                 m_buf &= uint64_t(-1) << m_pos_in_word;
@@ -433,20 +434,21 @@ namespace succinct {
 
             uint64_t position() const
             {
-                return m_word_idx * 64 + m_pos_in_word;
+                return m_word_pos + m_pos_in_word;
             }
 
             uint64_t next()
             {
                 uint64_t buf = m_buf;
                 while (!buf) {
-                    buf = m_data[++m_word_idx];
+                    m_word_pos += 64;
+                    buf = m_data[m_word_pos / 64];
                 }
 
                 unsigned long pos_in_word = broadword::lsb(buf);
                 m_buf = buf & (buf - 1); // clear LSB
                 m_pos_in_word = pos_in_word;
-                return m_word_idx * 64 + pos_in_word;
+                return m_word_pos + pos_in_word;
             }
 
             // skip to the k-th one after the current position
@@ -457,7 +459,8 @@ namespace succinct {
                 uint64_t w = 0;
                 while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    buf = m_data[++m_word_idx];
+                    m_word_pos += 64;
+                    buf = m_data[m_word_pos / 64];
                 }
                 assert(buf);
                 m_pos_in_word = broadword::select_in_word(buf, k - skipped);
@@ -472,7 +475,8 @@ namespace succinct {
                 uint64_t w = 0;
                 while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    buf = ~m_data[++m_word_idx];
+                    m_word_pos += 64;
+                    buf = ~m_data[m_word_pos / 64];
                 }
                 assert(buf);
                 m_pos_in_word = broadword::select_in_word(buf, k - skipped);
@@ -481,7 +485,7 @@ namespace succinct {
 
         private:
             uint64_t const* m_data;
-            uint64_t m_word_idx;
+            uint64_t m_word_pos;
             uint64_t m_pos_in_word;
             uint64_t m_buf;
         };
