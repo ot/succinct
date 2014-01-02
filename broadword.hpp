@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "intrinsics.hpp"
+#include "tables.hpp"
 
 namespace succinct { namespace broadword {
 
@@ -89,15 +90,14 @@ namespace succinct { namespace broadword {
         uint64_t byte_sums = byte_counts(x) * ones_step_8;
 
         const uint64_t k_step_8 = k * ones_step_8;
-        const uint64_t place = (leq_step_8(byte_sums, k_step_8) * ones_step_8 >> 53) & uint64_t(~0x7);
-
-        const uint64_t byte_rank = k - (((byte_sums << 8) >> place) & 0xFF);
-        const uint64_t spread_bits = (x >> place & 0xFF) * ones_step_8 & incr_step_8;
-        const uint64_t bit_sums = zcompare_step_8(spread_bits) * ones_step_8;
-
-        const uint64_t byte_rank_step_8 = byte_rank * ones_step_8;
-
-        return place + (leq_step_8(bit_sums, byte_rank_step_8) * ones_step_8 >> 56);
+        const uint64_t geq_k_step_8 = (((k_step_8 | msbs_step_8) - byte_sums) & msbs_step_8);
+#if SUCCINCT_USE_POPCNT
+        const uint64_t place = intrinsics::popcount(geq_k_step_8) * 8;
+#else
+        const uint64_t place = ((geq_k_step_8 >> 7) * ones_step_8 >> 53) & ~uint64_t(0x7);
+#endif
+        const uint64_t byte_rank = k - (((byte_sums << 8 ) >> place) & uint64_t(0xFF));
+        return place + tables::select_in_byte[((x >> place) & 0xFF ) | (byte_rank << 8)];
     }
 
     inline uint64_t same_msb(uint64_t x, uint64_t y)
