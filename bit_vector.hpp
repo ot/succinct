@@ -416,39 +416,36 @@ namespace succinct {
         struct unary_enumerator {
             unary_enumerator()
                 : m_data(0)
-                , m_word_pos(0)
-                , m_pos_in_word(0)
+                , m_position(0)
                 , m_buf(0)
             {}
 
             unary_enumerator(bit_vector const& bv, uint64_t pos)
             {
                 m_data = bv.data().data();
-                uint64_t idx = pos / 64;
-                m_word_pos = idx * 64;;
-                m_buf = m_data[idx];
+                m_position = pos;
+                m_buf = m_data[pos / 64];
                 // clear low bits
-                m_pos_in_word = pos % 64;
-                m_buf &= uint64_t(-1) << m_pos_in_word;
+                m_buf &= uint64_t(-1) << (pos % 64);
             }
 
             uint64_t position() const
             {
-                return m_word_pos + m_pos_in_word;
+                return m_position;
             }
 
             uint64_t next()
             {
+                unsigned long pos_in_word;
                 uint64_t buf = m_buf;
-                while (!buf) {
-                    m_word_pos += 64;
-                    buf = m_data[m_word_pos / 64];
+                while (!broadword::lsb(buf, pos_in_word)) {
+                    m_position += 64;
+                    buf = m_data[m_position / 64];
                 }
 
-                unsigned long pos_in_word = broadword::lsb(buf);
                 m_buf = buf & (buf - 1); // clear LSB
-                m_pos_in_word = pos_in_word;
-                return m_word_pos + pos_in_word;
+                m_position = (m_position & ~uint64_t(63)) + pos_in_word;
+                return m_position;
             }
 
             // skip to the k-th one after the current position
@@ -459,34 +456,36 @@ namespace succinct {
                 uint64_t w = 0;
                 while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    m_word_pos += 64;
-                    buf = m_data[m_word_pos / 64];
+                    m_position += 64;
+                    buf = m_data[m_position / 64];
                 }
                 assert(buf);
-                m_pos_in_word = broadword::select_in_word(buf, k - skipped);
-                m_buf = buf & (uint64_t(-1) << m_pos_in_word);
+                uint64_t pos_in_word = broadword::select_in_word(buf, k - skipped);
+                m_buf = buf & (uint64_t(-1) << pos_in_word);
+                m_position = (m_position & ~uint64_t(63)) + pos_in_word;
             }
 
             // skip to the k-th zero after the current position
             void skip0(uint64_t k)
             {
                 uint64_t skipped = 0;
-                uint64_t buf = ~m_buf & (uint64_t(-1) << m_pos_in_word);
+                uint64_t pos_in_word = m_position % 64;
+                uint64_t buf = ~m_buf & (uint64_t(-1) << pos_in_word);
                 uint64_t w = 0;
                 while (skipped + (w = broadword::popcount(buf)) <= k) {
                     skipped += w;
-                    m_word_pos += 64;
-                    buf = ~m_data[m_word_pos / 64];
+                    m_position += 64;
+                    buf = ~m_data[m_position / 64];
                 }
                 assert(buf);
-                m_pos_in_word = broadword::select_in_word(buf, k - skipped);
-                m_buf = ~buf & (uint64_t(-1) << m_pos_in_word);
+                pos_in_word = broadword::select_in_word(buf, k - skipped);
+                m_buf = ~buf & (uint64_t(-1) << pos_in_word);
+                m_position = (m_position & ~uint64_t(63)) + pos_in_word;
             }
 
         private:
             uint64_t const* m_data;
-            uint64_t m_word_pos;
-            uint64_t m_pos_in_word;
+            uint64_t m_position;
             uint64_t m_buf;
         };
 
