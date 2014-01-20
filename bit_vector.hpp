@@ -89,7 +89,7 @@ namespace succinct {
             if (pos_in_word == 0) {
                 m_bits.push_back(bits);
             } else {
-                *m_cur_word |= (bits << pos_in_word);
+                *m_cur_word |= bits << pos_in_word;
                 if (len > 64 - pos_in_word) {
                     m_bits.push_back(bits >> (64 - pos_in_word));
                 }
@@ -119,15 +119,29 @@ namespace succinct {
 
         void append(bit_vector_builder const& rhs)
         {
-            uint64_t remaining = rhs.size();
-            size_t i = 0;
-            while (remaining >= 64) {
-                append_bits(rhs.m_bits[i++], 64);
-                remaining -= 64;
+            if (!rhs.size()) return;
+
+            uint64_t pos = m_bits.size();
+            uint64_t shift = size() % 64;
+            m_size = size() + rhs.size();
+            m_bits.resize(detail::words_for(m_size));
+
+            if (shift == 0) { // word-aligned, easy case
+                std::copy(rhs.m_bits.begin(), rhs.m_bits.end(),
+                          m_bits.begin() + ptrdiff_t(pos));
+            } else {
+                uint64_t* cur_word = &m_bits.front() + pos - 1;
+                for (size_t i = 0; i < rhs.m_bits.size() - 1; ++i) {
+                    uint64_t w = rhs.m_bits[i];
+                    *cur_word |= w << shift;
+                    *++cur_word = w >> (64 - shift);
+                }
+                *cur_word |= rhs.m_bits.back() << shift;
+                if (cur_word < &m_bits.back()) {
+                    *++cur_word = rhs.m_bits.back() >> (64 - shift);
+                }
             }
-            if (remaining) {
-                append_bits(rhs.m_bits[i], remaining);
-            }
+            m_cur_word = &m_bits.back();
         }
 
         // reverse in place
