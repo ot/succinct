@@ -148,6 +148,24 @@ BOOST_AUTO_TEST_CASE(bit_vector_unary_enumerator)
     {
         succinct::bit_vector::unary_enumerator e(bitmap, 0);
 
+        for (size_t r = 0; r < ones.size(); ++r) {
+            for (size_t k = 0; k < std::min(size_t(256), size_t(ones.size() - r)); ++k) {
+                succinct::bit_vector::unary_enumerator ee(e);
+                uint64_t pos_skip = ee.skip_no_move(k);
+                uint64_t pos = ee.next();
+                MY_REQUIRE_EQUAL(ones[r], pos,
+                                 "r = " << r << " k = " << k);
+                MY_REQUIRE_EQUAL(ones[r + k], pos_skip,
+                                 "r = " << r << " k = " << k);
+
+            }
+            e.next();
+        }
+    }
+
+    {
+        succinct::bit_vector::unary_enumerator e(bitmap, 0);
+
         for (size_t pos = 0; pos < v.size(); ++pos) {
             uint64_t skip = 0;
             for (size_t d = 0; d < std::min(size_t(256), size_t(v.size() - pos)); ++d) {

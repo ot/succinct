@@ -479,6 +479,24 @@ namespace succinct {
                 m_position = (m_position & ~uint64_t(63)) + pos_in_word;
             }
 
+            // return the position of the k-th one after the current position.
+            uint64_t skip_no_move(uint64_t k)
+            {
+                uint64_t position = m_position;
+                uint64_t skipped = 0;
+                uint64_t buf = m_buf;
+                uint64_t w = 0;
+                while (skipped + (w = broadword::popcount(buf)) <= k) {
+                    skipped += w;
+                    position += 64;
+                    buf = m_data[position / 64];
+                }
+                assert(buf);
+                uint64_t pos_in_word = broadword::select_in_word(buf, k - skipped);
+                position = (position & ~uint64_t(63)) + pos_in_word;
+                return position;
+            }
+
             // skip to the k-th zero after the current position
             void skip0(uint64_t k)
             {
