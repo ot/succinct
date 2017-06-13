@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(SUCCINCT)
 
-configure_file(
-  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp.in
-  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp)
-
 option(SUCCINCT_USE_LIBCXX
   "Use libc++ with Clang instead of libstdc++ (must be same as that used to compile Boost)"
   OFF)
@@ -14,6 +10,10 @@ option(SUCCINCT_USE_INTRINSICS
 option(SUCCINCT_USE_POPCNT
   "Use popcount intrinsic. Available on x86-64 since SSE4.2."
   OFF)
+
+configure_file(
+  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp.in
+  ${SUCCINCT_SOURCE_DIR}/succinct_config.hpp)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
    if (SUCCINCT_USE_LIBCXX)
