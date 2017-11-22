@@ -267,7 +267,7 @@ namespace succinct { namespace util {
     {
         // XXX(ot): put some static check that IntType1 >= IntType2
         IntType1 d = IntType1(divisor);
-        return IntType1(dividend + d - 1) / d;
+        return IntType1(1 + (dividend - 1) / d);
     }
 
 }}
