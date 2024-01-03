@@ -91,11 +91,11 @@ namespace succinct { namespace broadword {
 
         const uint64_t k_step_8 = (k | 0x80) * ones_step_8;
         const uint64_t geq_k_step_8 = k_step_8 - byte_sums;
-    #if SUCCINCT_USE_POPCNT
+#if SUCCINCT_USE_POPCNT
         const uint64_t place = intrinsics::popcount(geq_k_step_8 & msbs_step_8) * 8;
-    #else
+#else
         const uint64_t place = (((geq_k_step_8 >> 7) & ones_step_8) * ones_step_8 >> 53);
-    #endif
+#endif
         const uint64_t byte_rank = k - (((byte_sums << 8 ) >> place) & uint64_t(0xFF));
         return place + tables::select_in_byte[((x >> place) & 0xFF ) | (byte_rank << 8)];
     }
